@@ -11,8 +11,75 @@ and open the template in the editor.
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="suite.js" type="text/javascript"></script>
         <link href="suite.css" rel="stylesheet" type="text/css"/>
+        <script src="jquery-3.4.1.min.js" type="text/javascript"></script>
+        <link href="index.css" rel="stylesheet" type="text/css"/>
+        <style>
+            html, body {height:100%;}
+            .dhx_sample-container {
+                height: 100%;
+            }
+        </style>
     </head>
     <body>
-        <div>TODO write content</div>
+
+        <section class="dhx_sample-container">
+            <div class="dhx_sample-container__widget" id="layout"></div>
+
+        </section>
+        <script>
+            var layout = new dhx.Layout("layout", {
+                css: "dhx_layout-cell--bordered",
+                rows: [{
+                        id: "toolbar",
+                        header: "BP 1.0 Configurator",
+                        //collapsable: true,
+                        css: "dhx_layout-cell--border_bottom",
+                        gravity: false,
+                        height: "80px"
+                    },
+                    {
+                        cols: [{
+                                id: "sidebar",
+                                header: "Menu",
+                                collapsable: true,
+                                gravity: false,
+                                css: "dhx_layout-cell--border_right",
+                                resizable: true,
+                                width: "200px"
+                            },
+                            {   
+                                resizable: true,
+                                rows: [{
+                                        id: "content",
+                                        css: "",
+                                        header: "Workplace",
+                                        
+                                    }, ]
+                            },
+                            {
+                                id: "rightbar",
+                                header: "Settings",
+                                collapsable: true,
+                                gravity: false,
+                                css: "dhx_layout-cell--border_left",
+                                resizable: true,
+                                width: "200px"
+                            },
+                        ]
+                    },
+                    {
+                        id: "footer",
+                        //header: "Footer",
+                        //collapsable: true,
+                        css: "dhx_layout-cell--border_top",
+                        gravity: false,
+                        height: "40px",
+                        
+                    }
+                ]
+            });
+        </script>
+
+
     </body>
 </html>

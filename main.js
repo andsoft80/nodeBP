@@ -2,6 +2,7 @@ var express = require('express');
 var fs = require('fs');
 
 var app = express();
+app.use(express.static('public'));
 app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.urlencoded({extended: false})); // to support URL-encoded bodies
 app.listen(3000, function () {

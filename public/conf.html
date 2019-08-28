@@ -45,15 +45,23 @@ and open the template in the editor.
                                 gravity: false,
                                 css: "dhx_layout-cell--border_right",
                                 resizable: true,
-                                width: "200px"
+                                width: "200px",
+                                rows: [
+                                    {
+                                        id: "s_toolbar"
+                                    },
+                                    {
+                                        id: "s_tree"
+                                    },
+                                ]
                             },
-                            {   
+                            {
                                 resizable: true,
                                 rows: [{
                                         id: "content",
                                         css: "",
                                         header: "Workplace",
-                                        
+
                                     }, ]
                             },
                             {
@@ -74,10 +82,116 @@ and open the template in the editor.
                         css: "dhx_layout-cell--border_top",
                         gravity: false,
                         height: "40px",
-                        
+
                     }
                 ]
             });
+
+//-->Sidebar ToolBar/////////////////////////////////////////////////////////////
+            var toolbar = new dhx.Toolbar(null);
+            var data = [
+                {
+                    type: "button",
+                    icon: "dxi-plus",
+                    size: "small",
+                    value: "",
+                    id: 'add'
+                },
+
+                {
+                    type: "button",
+                    icon: "dxi-vault",
+                    size: "small",
+                    value: "",
+                    id: 'save'
+                },
+                {
+                    type: "button",
+                    icon: "dxi-delete",
+                    size: "small",
+                    value: "",
+                    id: 'delete'
+                }
+            ];
+            toolbar.data.parse(data);
+            layout.cell('s_toolbar').attach(toolbar);
+
+            toolbar.events.on("Click", function (id, e) {
+                var selCurrTreeItem = tree.selection.getId();
+
+                if (selCurrTreeItem !== undefined) {
+                    var selCurrTreeItemName = tree.selection.getItem().value;
+                    //alert(JSON.stringify(selCurrTreeItemName));
+                    var rows = [
+                        {
+                            type: "text",
+                            //label: "text",
+                            //labelInline: true,
+                            value: "Create new of "+selCurrTreeItemName
+                        },
+                        {
+                            id: "name",
+                            type: "input",
+                            label: "Name",
+                            icon: "dxi-magnify",
+                            placeholder: "Object name"
+                        },
+                        {
+                            type: "button",
+                            value: "Save",
+                            size: "medium",
+                            view: "flat",
+                            color: "primary"
+                        }
+                    ];
+                    var form = new dhx.Form(null, {rows});
+                    layout.cell('rightbar').attach(form);
+                }
+            });
+//<--Sidebar ToolBar/////////////////////////////////////////////////////////////
+
+//-->Sidebar Tree/////////////////////////////////////////////////////////////
+
+            var tree = new dhx.Tree(null, {keyNavigation: true});
+            tree.data.add({
+                type: "button",
+                icon: "dxi-plus",
+                value: "Directories",
+                id: 'dir'
+            }, 1);
+            tree.data.add({
+                type: "button",
+                icon: "dxi-plus",
+                value: "Documents",
+                id: 'doc'
+            }, 2);
+            tree.data.add({
+                type: "button",
+                icon: "dxi-plus",
+                value: "Settings",
+                id: 'setting'
+            }, 3);
+            tree.data.add({
+                type: "button",
+                icon: "dxi-plus",
+                value: "Enums",
+                id: 'enum'
+            }, 4);
+            tree.data.add({
+                type: "button",
+                icon: "dxi-plus",
+                value: "Reports",
+                id: 'report'
+            }, 5);
+            tree.data.add({
+                type: "button",
+                icon: "dxi-plus",
+                value: "Transactions",
+                id: 'trx'
+            }, 6);
+            layout.cell('s_tree').attach(tree);
+
+//-->Sidebar Tree/////////////////////////////////////////////////////////////            
         </script>
 
 

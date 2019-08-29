@@ -20,13 +20,16 @@ and open the template in the editor.
             }
         </style>
     </head>
-    <body>
+    <body onload = "init()">
 
         <section class="dhx_sample-container">
             <div class="dhx_sample-container__widget" id="layout"></div>
 
         </section>
         <script>
+            function init(){
+                loadTree();
+            }
             var layout = new dhx.Layout("layout", {
                 css: "dhx_layout-cell--bordered",
                 rows: [{
@@ -127,7 +130,7 @@ and open the template in the editor.
                             type: "text",
                             //label: "text",
                             //labelInline: true,
-                            value: "Create new of "+selCurrTreeItemName
+                            value: "Create new of " + selCurrTreeItemName
                         },
                         {
                             id: "name",
@@ -137,21 +140,111 @@ and open the template in the editor.
                             placeholder: "Object name"
                         },
                         {
-                            type: "button",
-                            value: "Save",
-                            size: "medium",
-                            view: "flat",
-                            color: "primary"
-                        }
+                            cols: [
+                                {
+                                    type: "button",
+                                    value: "Save",
+                                    size: "medium",
+                                    view: "flat",
+                                    color: "primary",
+                                    id: "saveObject"
+                                },
+                                {
+                                    type: "button",
+                                    value: "Cancel",
+                                    size: "medium",
+                                    view: "flat",
+                                    color: "primary",
+                                    id: "cancel"
+                                }
+                            ]}
+
                     ];
                     var form = new dhx.Form(null, {rows});
                     layout.cell('rightbar').attach(form);
+                    form.events.on("ButtonClick", function (id, e) {
+                        if (id === "saveObject") {
+                            if (form.getValue().name) {
+                                var objectModel = {};
+                                objectModel.objectType = tree.selection.getItem().id;
+                                objectModel.name = form.getValue().name;
+
+                                saveObject(objectModel, form);
+                            } else {
+                                alert("Input name of object!");
+                            }
+                        }
+                        if (id === "cancel") {
+                            // layout.cell('rightbar').detach(form);
+                            form.destructor();
+                        }
+                    });
                 }
             });
+
 //<--Sidebar ToolBar/////////////////////////////////////////////////////////////
+            function saveObject(objectModel, callform) {
+                $.ajax({
+                    type: "post",
+                    //async: false,
+                    url: "/metadata",
+                    //headers: {"Access-Control-Allow-Origin": "*"},
+                    data: objectModel,
+                    success: function (data) {
+                        alert('Saved!');
+                        callform.destructor();
+                        loadTree(data.doc._id);
+                        
+                    }
+                });
+            }
+            ;
+            function getObject() {
+                $.ajax({
+                    type: "get",
+                    //async: false,
+                    url: "/metadata",
+                    //headers: {"Access-Control-Allow-Origin": "*"},
 
+                    success: function (data) {
+
+
+                    }
+                });
+            }
+            ;
 //-->Sidebar Tree/////////////////////////////////////////////////////////////
+            function loadTree(id) {
+                var url = id ? '/metadata/' + id : '/metadata';
+                
+                $.ajax({
+                    type: "get",
+                    //async: false,
+                    url: url,
+                    //headers: {"Access-Control-Allow-Origin": "*"},
 
+                    success: function (data) {
+                        if (id) {//single object
+                            if (tree.data.getItem(id)) {//exist
+                                //refresh item
+                            } else {//new
+                                
+                                objType = data.objectType;
+                                
+                                
+                                tree.data.add({value:data.name, id:id},0,objType);
+                            }
+                        } else {//all tree
+                            for(i=0;i<data.length;i++){
+                                var object = data[i];
+                                tree.data.add({value:object.name, id:object._id},0,object.objectType);
+                            }
+
+                        }
+
+                    }
+                });
+            }
             var tree = new dhx.Tree(null, {keyNavigation: true});
             tree.data.add({
                 type: "button",

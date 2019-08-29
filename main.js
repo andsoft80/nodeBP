@@ -90,6 +90,48 @@ var MetaData = mongoose.model('MetaData', objectSchema);
 //    
 //});
 //docInvoice.save();
+app.post('/metadata', function (req, res) {
+    var objectData = req.body;
+    if(!objectData._id){
+        objectData._id = new mongoose.Types.ObjectId();
+    }
+    console.log(JSON.stringify(objectData));
+    docInvoice = new MetaData(objectData);
+    docInvoice.save(function(err,doc){
+        if (err) throw res.send(JSON.stringify(err));
+        res.send({"status":200, "doc":doc});
+    });
+    
+    
+});
+app.get('/metadata', function (req, res) {
+
+       var query = MetaData.find({});
+       query.exec(function (err, docs) {
+           res.send(docs);
+       });
+       
+
+   
+    
+});
+app.get('/metadata/:id', function (req, res) {
+
+       var query = MetaData.findById(req.params.id);
+       query.exec(function (err, docs) {
+           res.send(docs);
+       });
+       
+
+   
+    
+});
+
+app.put('/metadata', function (req, res) {
+   
+    
+});
+
 
 
 //End ObjectTree

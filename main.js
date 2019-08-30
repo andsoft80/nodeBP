@@ -54,7 +54,9 @@ var objectSchema = mongoose.Schema({
     name: String,
     fields: [
         {fieldId: String,
+            alias: String,
             type: String,
+            edtType : String,
             helpText: String}],
     tableParts: [
         {
@@ -63,6 +65,8 @@ var objectSchema = mongoose.Schema({
             fields: [
                 {fieldId: String,
                     type: String,
+                    edtType : String,
+                    alias: String,
                     helpText: String}]
 
         }],

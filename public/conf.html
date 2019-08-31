@@ -18,6 +18,9 @@ and open the template in the editor.
             .dhx_sample-container {
                 height: 100%;
             }
+            .dn{
+                display: none;
+            }
         </style>
     </head>
     <body onload = "init()">
@@ -290,14 +293,25 @@ and open the template in the editor.
                 if (tree.data.getParent(id).indexOf("ROOT") == -1) {//second level and more...
 
                     if (!tabsWorkplace[tree.data.getItem(id).value]) {
-                        tabbar.addCell({tab: tree.data.getItem(id).value, id: tree.data.getItem(id).value}, 0);
+
+                        tabbar.addCell({
+                            tab: tree.data.getItem(id).value,
+                            id: tree.data.getItem(id).value
+                            
+                        }, 0);
+
+
                         tabsWorkplace[tree.data.getItem(id).value] = true;
-                        //alert(JSON.stringify(tabsWorkplace));
                         tabbar.setActive(tree.data.getItem(id).value);
+//                        var c = tabbar.cell(tree.data.getItem(id).value);
+//                        c.attach(tree);
+                        //alert(tabbar.length);
+
+
                     } else {
-                        
+
                         tabbar.setActive(tree.data.getItem(id).value)
-                        
+
 
                     }
                 }
@@ -307,13 +321,18 @@ and open the template in the editor.
 //-->TabBar Workplace///////////////////////////////////////////////////////////
             var tabsWorkplace = {};
             var tabbar = new dhx.Tabbar(null, {
-                closeButtons: true
-
+                closeButtons: true,
+                views: [
+                    {tab: "left", tabCss:"dn" }
+                    
+                ]
 
             });
             
             tabbar.events.on("Close", function (id) {
                 tabsWorkplace[id] = false;
+                tabbar.setActive(tabbar.setActive(tabbar.getId(0)));
+                
             });
             layout.cell('content').attach(tabbar);
 //<--TabBar Workplace//////////////////////////////////////////////////////////  

@@ -283,35 +283,40 @@ and open the template in the editor.
                 value: "Transactions",
                 id: 'trx'
             }, 6);
+
             layout.cell('s_tree').attach(tree);
 
             tree.events.on("itemClick", function (id, e) {
                 if (tree.data.getParent(id).indexOf("ROOT") == -1) {//second level and more...
-                    var tabExist = false;
-                    
-                    if (tabbar.views){
-                        for (var i = 0; i < tabbar.views.length; i++) {
-                            if (tabbar.views[i].tab === tree.data.getItem(id).value) {
-                                tabExist = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!tabExist) {
-                        tabbar.addCell({tab: tree.data.getItem(id).value}, 0);
+
+                    if (!tabsWorkplace[tree.data.getItem(id).value]) {
+                        tabbar.addCell({tab: tree.data.getItem(id).value, id: tree.data.getItem(id).value}, 0);
+                        tabsWorkplace[tree.data.getItem(id).value] = true;
+                        //alert(JSON.stringify(tabsWorkplace));
+                        tabbar.setActive(tree.data.getItem(id).value);
                     } else {
+                        
                         tabbar.setActive(tree.data.getItem(id).value)
+                        
+
                     }
                 }
             });
 
 //<--Sidebar Tree/////////////////////////////////////////////////////////////
 //-->TabBar Workplace///////////////////////////////////////////////////////////
+            var tabsWorkplace = {};
             var tabbar = new dhx.Tabbar(null, {
                 closeButtons: true
+
+
+            });
+            
+            tabbar.events.on("Close", function (id) {
+                tabsWorkplace[id] = false;
             });
             layout.cell('content').attach(tabbar);
-//<--TabBar Workplace//////////////////////////////////////////////////////////
+//<--TabBar Workplace//////////////////////////////////////////////////////////  
         </script>
 
 

@@ -48,6 +48,11 @@ objectTypes = {
     setting: 'setting',
     report: 'report'
 };
+
+formTypes = {
+    list : 'list',
+    element : 'element'
+};
 var objectSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     objectType: String,
@@ -73,9 +78,11 @@ var objectSchema = mongoose.Schema({
     forms:[
         {
             formId: String,
+            formType: String,//list, element
             structure: Object
         }
-    ]
+    ],
+    code:String
 });
 
 var MetaData = mongoose.model('MetaData', objectSchema);
@@ -135,7 +142,12 @@ app.put('/metadata', function (req, res) {
    
     
 });
-
+app.post('/build', function (req, res) {
+    
+    
+   res.send('Ok');
+    
+});
 
 
 //End ObjectTree

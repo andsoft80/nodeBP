@@ -13,6 +13,7 @@ and open the template in the editor.
         <link href="suite.css" rel="stylesheet" type="text/css"/>
         <script src="jquery-3.4.1.min.js" type="text/javascript"></script>
         <link href="index.css" rel="stylesheet" type="text/css"/>
+        <script src="global.js" type="text/javascript"></script>
         <style>
             html, body {height:100%;}
             .dhx_sample-container {
@@ -41,7 +42,7 @@ and open the template in the editor.
                         //collapsable: true,
                         css: "dhx_layout-cell--border_bottom",
                         gravity: false,
-                        height: "80px"
+                        height: "170px"
                     },
                     {
                         cols: [{
@@ -94,6 +95,36 @@ and open the template in the editor.
                 ]
             });
 
+//-->Main ToolBar////////////////////////////////////////////////////////////////
+            var toolbarMain = new dhx.Toolbar(null);
+            var data = [
+                {
+                    type: "button",
+                    icon: "dxi-chevron-right",
+                    size: "small",
+                    value: "",
+                    id: 'start'
+                }]
+            toolbarMain.data.parse(data);
+            layout.cell('toolbar').attach(toolbarMain);
+            toolbarMain.events.on("Click", function (id, e) {
+                if (id === 'start') {
+                    
+                    $.ajax({
+                        type: "post",
+                        //async: false,
+                        url: "/build",
+                        //headers: {"Access-Control-Allow-Origin": "*"},
+                       
+                        success: function (data) {
+                            alert("Build done!");
+
+                        }
+                    });
+                }
+            });
+
+//<--Main ToolBar////////////////////////////////////////////////////////////////
 //-->Sidebar ToolBar/////////////////////////////////////////////////////////////
             var toolbar = new dhx.Toolbar(null);
             var data = [
@@ -297,14 +328,14 @@ and open the template in the editor.
                         tabbar.addCell({
                             tab: tree.data.getItem(id).value,
                             id: tree.data.getItem(id).value
-                            
+
                         }, 0);
 
 
                         tabsWorkplace[tree.data.getItem(id).value] = true;
                         tabbar.setActive(tree.data.getItem(id).value);
-//                        var c = tabbar.cell(tree.data.getItem(id).value);
-//                        c.attach(tree);
+                        var c = tabbar.cell(tree.data.getItem(id).value);
+                        c.attach(tree);
                         //alert(tabbar.length);
 
 
@@ -323,16 +354,76 @@ and open the template in the editor.
             var tabbar = new dhx.Tabbar(null, {
                 closeButtons: true,
                 views: [
-                    {tab: "left", tabCss:"dn" }
-                    
+                    //{tab: "left", tabCss:"dn" }
+                    {tab: "left", id: 'left'}
+
                 ]
 
             });
-            
+
+            ////////////////////////////////test/////////////////////////////////////////
+            var rowsTest = [
+                {
+                    id: "name",
+                    type: "input",
+                    label: "Name",
+                    icon: "dxi-magnify",
+                    placeholder: "John Doe"
+                },
+                {
+                    id: "email",
+                    type: "input",
+                    label: "Email",
+                    placeholder: "jd@mail.name"
+                },
+                {
+                    type: "checkbox",
+                    label: "I agree",
+                    name: "agree",
+                    labelInline: true,
+                    id: "agree",
+                    value: "checkboxvalue",
+                },
+
+                {
+                    type: "button",
+                    value: "Send",
+                    size: "medium",
+                    view: "flat",
+                    color: "primary",
+                    id: "send"
+                },
+
+                {
+                    type: "textarea",
+                    label: "Code",
+                    //labelInline: true,
+                    labelWidth: "70px",
+                    value: 'form.events.on("ButtonClick", function(id,e){\n\
+  console.log(id);\n\
+});\n\
+form.events.on("Change",function(id, new_value){\n\
+// your code here\n\
+});',
+                    resizable: true,
+//                  width: "400px",
+                    height: "300px"
+                }
+            ];
+
+            var form = new dhx.Form(null, {rows: rowsTest});
+
+
+            tabbar.cell('left').attach(form);
+
+
+
+            //////////////////////////////test/////////////////
+
             tabbar.events.on("Close", function (id) {
                 tabsWorkplace[id] = false;
                 tabbar.setActive(tabbar.setActive(tabbar.getId(0)));
-                
+
             });
             layout.cell('content').attach(tabbar);
 //<--TabBar Workplace//////////////////////////////////////////////////////////  

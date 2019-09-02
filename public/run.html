@@ -9,10 +9,20 @@ and open the template in the editor.
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="metacontroller.js" type="text/javascript"></script>
-        <script src="global.js" type="text/javascript"></script>
+        <!--<script  src="global.js" type="module"></script>-->
+        <link href="suite.css" rel="stylesheet" type="text/css"/>
+        <script src="suite.js" type="text/javascript"></script>
+        <link href="index.css" rel="stylesheet" type="text/css"/>
     </head>
     <body>
         <div>TODO write content</div>
+        <script  type="module" >
+            import * as Meta from "./proxy.js"
+//            alert(Users.form);
+            var dhxwindow = new dhx.Window({width: 440, height: 520, title: "Window"});
+            dhxwindow.attach(Meta.users1form);
+            dhxwindow.show();
+        </script>
+
     </body>
 </html>

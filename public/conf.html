@@ -104,18 +104,31 @@ and open the template in the editor.
                     size: "small",
                     value: "",
                     id: 'start'
-                }]
+                },
+                {
+                    type: "button",
+                    icon: "dxi-vault",
+                    size: "small",
+                    value: "",
+                    id: 'save'
+                }
+            ]
             toolbarMain.data.parse(data);
             layout.cell('toolbar').attach(toolbarMain);
             toolbarMain.events.on("Click", function (id, e) {
-                if (id === 'start') {
+                if (id === 'save') {
+
                     
+                    
+                }
+                if (id === 'start') {
+
                     $.ajax({
                         type: "post",
                         //async: false,
                         url: "/build",
                         //headers: {"Access-Control-Allow-Origin": "*"},
-                       
+
                         success: function (data) {
                             alert("Build done!");
 
@@ -334,8 +347,8 @@ and open the template in the editor.
 
                         tabsWorkplace[tree.data.getItem(id).value] = true;
                         tabbar.setActive(tree.data.getItem(id).value);
-                        var c = tabbar.cell(tree.data.getItem(id).value);
-                        c.attach(tree);
+//                        var c = tabbar.cell(tree.data.getItem(id).value);
+//                        c.attach(tree);
                         //alert(tabbar.length);
 
 
@@ -377,44 +390,53 @@ and open the template in the editor.
                     placeholder: "jd@mail.name"
                 },
                 {
+                    id: "password",
+                    type: "input",
+                    label: "Password",
+                    placeholder: "Enter password"
+                },
+                {
                     type: "checkbox",
-                    label: "I agree",
+                    label: "Save session",
                     name: "agree",
                     labelInline: true,
-                    id: "agree",
+                    id: "savesession",
                     value: "checkboxvalue",
-                },
-
-                {
-                    type: "button",
-                    value: "Send",
-                    size: "medium",
-                    view: "flat",
-                    color: "primary",
-                    id: "send"
-                },
-
-                {
-                    type: "textarea",
-                    label: "Code",
-                    //labelInline: true,
-                    labelWidth: "70px",
-                    value: 'form.events.on("ButtonClick", function(id,e){\n\
-  console.log(id);\n\
-});\n\
-form.events.on("Change",function(id, new_value){\n\
-// your code here\n\
-});',
-                    resizable: true,
-//                  width: "400px",
-                    height: "300px"
                 }
+//                ,
+//
+//                {
+//                    type: "button",
+//                    value: "Send",
+//                    size: "medium",
+//                    view: "flat",
+//                    color: "primary",
+//                    id: "send"
+//                }
+//                ,
+//
+//                {
+//                    type: "textarea",
+//                    label: "Code",
+//                    //labelInline: true,
+//                    labelWidth: "70px",
+//                    value: 'form.events.on("ButtonClick", function(id,e){\n\
+//  console.log(id);\n\
+//});\n\
+//form.events.on("Change",function(id, new_value){\n\
+//// your code here\n\
+//});',
+//                    resizable: true,
+////                  width: "400px",
+//                    height: "300px"
+//                }
+
             ];
 
-            var form = new dhx.Form(null, {rows: rowsTest});
+            var formTest = new dhx.Form(null, {rows: rowsTest});
 
 
-            tabbar.cell('left').attach(form);
+            tabbar.cell('left').attach(formTest);
 
 
 

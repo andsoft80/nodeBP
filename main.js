@@ -12,6 +12,7 @@ mongoose.connect('mongodb://localhost/bp', {useNewUrlParser: true}, function (er
 
 var app = express();
 app.use(express.static('public'));
+app.use(express.static('modules'));
 //app.use(express.bodyParser());
 app.use(express.json());       // to support JSON-encoded bodies
 app.use(express.urlencoded({extended: false})); // to support URL-encoded bodies
@@ -50,8 +51,8 @@ objectTypes = {
 };
 
 formTypes = {
-    list : 'list',
-    element : 'element'
+    list: 'list',
+    element: 'element'
 };
 var objectSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
@@ -61,7 +62,7 @@ var objectSchema = mongoose.Schema({
         {fieldId: String,
             alias: String,
             type: String,
-            edtType : String,
+            edtType: String,
             helpText: String}],
     tableParts: [
         {
@@ -70,19 +71,19 @@ var objectSchema = mongoose.Schema({
             fields: [
                 {fieldId: String,
                     type: String,
-                    edtType : String,
+                    edtType: String,
                     alias: String,
                     helpText: String}]
 
         }],
-    forms:[
+    forms: [
         {
             formId: String,
-            formType: String,//list, element
+            formType: String, //list, element
             structure: Object
         }
     ],
-    code:String
+    code: String
 });
 
 var MetaData = mongoose.model('MetaData', objectSchema);
@@ -103,50 +104,94 @@ var MetaData = mongoose.model('MetaData', objectSchema);
 //docInvoice.save();
 app.post('/metadata', function (req, res) {
     var objectData = req.body;
-    if(!objectData._id){
+    if (!objectData._id) {
         objectData._id = new mongoose.Types.ObjectId();
     }
     console.log(JSON.stringify(objectData));
     docInvoice = new MetaData(objectData);
-    docInvoice.save(function(err,doc){
-        if (err) throw res.send(JSON.stringify(err));
-        res.send({"status":200, "doc":doc});
+    docInvoice.save(function (err, doc) {
+        if (err)
+            throw res.send(JSON.stringify(err));
+        res.send({"status": 200, "doc": doc});
     });
-    
-    
+
+
 });
 app.get('/metadata', function (req, res) {
 
-       var query = MetaData.find({});
-       query.exec(function (err, docs) {
-           res.send(docs);
-       });
-       
+    var query = MetaData.find({});
+    query.exec(function (err, docs) {
+        res.send(docs);
+    });
 
-   
-    
+
+
+
 });
 app.get('/metadata/:id', function (req, res) {
 
-       var query = MetaData.findById(req.params.id);
-       query.exec(function (err, docs) {
-           res.send(docs);
-       });
-       
+    var query = MetaData.findById(req.params.id);
+    query.exec(function (err, docs) {
+        res.send(docs);
+    });
 
-   
-    
+
+
+
 });
 
 app.put('/metadata', function (req, res) {
-   
-    
+
+
 });
 app.post('/build', function (req, res) {
+    var rowsTest = [
+        {
+            id: "name",
+            type: "input",
+            label: "Name",
+            icon: "dxi-magnify",
+            placeholder: "John Doe"
+        },
+        {
+            id: "email",
+            type: "input",
+            label: "Email",
+            placeholder: "jd@mail.name"
+        },
+        {
+            id: "password",
+            type: "input",
+            label: "Password",
+            placeholder: "Enter password"
+        },
+        {
+            type: "checkbox",
+            label: "Save session",
+            name: "agree",
+            labelInline: true,
+            id: "savesession",
+            value: "checkboxvalue",
+        }];
+    var code = 'var layout = new dhx.Layout(null, { rows:[{id:"main"}]});';
+    code += 'var form = new dhx.Form(null, {rows: ' + JSON.stringify(rowsTest) + '});';
+    code += 'form.events.on("ButtonClick", function(id,e){\n\
+  alert(id);\n\
+});\n\
+form.events.on("Change",function(id, new_value){\n\
+ alert(new_value);\n\
+});';
     
+    code += 'layout.cell("main").attach(form);'
+    code += 'export {layout as form};';
+
+    fs.writeFileSync(__dirname + '/modules/users.js',code);
     
-   res.send('Ok');
-    
+    var globalTxt = 'import * as Users from "./modules/users.js"';
+    fs.writeFileSync(__dirname + '/public/global.js',globalTxt);
+
+    res.send('Ok');
+
 });
 
 

@@ -34,6 +34,8 @@ and open the template in the editor.
             function init() {
                 loadTree();
             }
+            var headerHeight = '120';
+            var bottomHeight = '40';
             var layout = new dhx.Layout("layout", {
                 css: "dhx_layout-cell--bordered",
                 rows: [{
@@ -42,7 +44,7 @@ and open the template in the editor.
                         //collapsable: true,
                         css: "dhx_layout-cell--border_bottom",
                         gravity: false,
-                        height: "170px"
+                        height: headerHeight+'px'
                     },
                     {
                         cols: [{
@@ -89,7 +91,7 @@ and open the template in the editor.
                         //collapsable: true,
                         css: "dhx_layout-cell--border_top",
                         gravity: false,
-                        height: "40px",
+                        height: bottomHeight+'px',
 
                     }
                 ]
@@ -118,8 +120,8 @@ and open the template in the editor.
             toolbarMain.events.on("Click", function (id, e) {
                 if (id === 'save') {
 
-                    
-                    
+
+
                 }
                 if (id === 'start') {
 
@@ -336,7 +338,7 @@ and open the template in the editor.
             tree.events.on("itemClick", function (id, e) {
                 if (tree.data.getParent(id).indexOf("ROOT") == -1) {//second level and more...
 
-                    if (!tabsWorkplace[tree.data.getItem(id).value]) {
+                    if (!tabsWorkplace[tree.data.getItem(id).value]) {//no Tab
 
                         tabbar.addCell({
                             tab: tree.data.getItem(id).value,
@@ -350,9 +352,10 @@ and open the template in the editor.
 //                        var c = tabbar.cell(tree.data.getItem(id).value);
 //                        c.attach(tree);
                         //alert(tabbar.length);
+                        createObjectConfigurator(tree.data.getItem(id).value);
 
 
-                    } else {
+                    } else {//exist Tab
 
                         tabbar.setActive(tree.data.getItem(id).value)
 
@@ -362,85 +365,41 @@ and open the template in the editor.
             });
 
 //<--Sidebar Tree/////////////////////////////////////////////////////////////
+//--> ObjectConfigurator//////////////////////////////////////////////////////
+            function createObjectConfigurator(id) {
+                
+                var workSpaceHeight = $(window).height()-headerHeight-200;
+                var layoutObjConf = new dhx.Layout(null, { rows:[{id:"main"}]});
+                var tabbarObjConf = new dhx.Tabbar(null, {
+                    closeButtons: false,
+                    mode: "bottom",
+
+                    views: [
+                        {tab: "Fields", id:"fields", height: workSpaceHeight},
+                        {tab: "Forms", id:"forms", height: workSpaceHeight},
+                        {tab: "Code", id:"code", height: workSpaceHeight}
+
+
+                    ]
+
+                });
+                layoutObjConf.cell("main").attach(tabbarObjConf);
+                tabbar.cell(id).attach(layoutObjConf);
+            }
+//<--ObjectConfigurator//////////////////////////////////////////////////////
 //-->TabBar Workplace///////////////////////////////////////////////////////////
             var tabsWorkplace = {};
             var tabbar = new dhx.Tabbar(null, {
                 closeButtons: true,
                 views: [
-                    //{tab: "left", tabCss:"dn" }
-                    {tab: "left", id: 'left'}
+                    {tab: "left", tabCss: "dn"}
+
 
                 ]
 
             });
 
-            ////////////////////////////////test/////////////////////////////////////////
-            var rowsTest = [
-                {
-                    id: "name",
-                    type: "input",
-                    label: "Name",
-                    icon: "dxi-magnify",
-                    placeholder: "John Doe"
-                },
-                {
-                    id: "email",
-                    type: "input",
-                    label: "Email",
-                    placeholder: "jd@mail.name"
-                },
-                {
-                    id: "password",
-                    type: "input",
-                    label: "Password",
-                    placeholder: "Enter password"
-                },
-                {
-                    type: "checkbox",
-                    label: "Save session",
-                    name: "agree",
-                    labelInline: true,
-                    id: "savesession",
-                    value: "checkboxvalue",
-                }
-//                ,
-//
-//                {
-//                    type: "button",
-//                    value: "Send",
-//                    size: "medium",
-//                    view: "flat",
-//                    color: "primary",
-//                    id: "send"
-//                }
-//                ,
-//
-//                {
-//                    type: "textarea",
-//                    label: "Code",
-//                    //labelInline: true,
-//                    labelWidth: "70px",
-//                    value: 'form.events.on("ButtonClick", function(id,e){\n\
-//  console.log(id);\n\
-//});\n\
-//form.events.on("Change",function(id, new_value){\n\
-//// your code here\n\
-//});',
-//                    resizable: true,
-////                  width: "400px",
-//                    height: "300px"
-//                }
 
-            ];
-
-            var formTest = new dhx.Form(null, {rows: rowsTest});
-
-
-            tabbar.cell('left').attach(formTest);
-
-
-
-            //////////////////////////////test/////////////////
 
             tabbar.events.on("Close", function (id) {
                 tabsWorkplace[id] = false;

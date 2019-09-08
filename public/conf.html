@@ -21,7 +21,11 @@ and open the template in the editor.
             }
             .dn{
                 display: none;
+
             }
+            .oa{
+                overflow: auto;
+            } 
         </style>
     </head>
     <body onload = "init()">
@@ -36,6 +40,25 @@ and open the template in the editor.
             }
             var headerHeight = '120';
             var bottomHeight = '40';
+            var workSpaceHeight = $(window).height() - headerHeight - 200;
+            var tabsWorkplace = {};
+            var tabsLayouts = {};
+
+
+//            window.addEventListener('resize', function (event) {
+//                workSpaceHeight = $(window).height() - headerHeight - 200;
+//                alert(workSpaceHeight);
+//                $("['aria-labelledby'='tab-content-main']").height(workSpaceHeight + 50);
+//            });
+            $(window).resize(function () {
+//                workSpaceHeight = $(window).height() - headerHeight - 200;
+//
+//                $("[aria-labelledby='tab-content-main']").css("flex-basis", workSpaceHeight + 50);
+//                $("[aria-labelledby='tab-content-main']").css("height", workSpaceHeight + 50);
+
+            });
+
+
             var layout = new dhx.Layout("layout", {
                 css: "dhx_layout-cell--bordered",
                 rows: [{
@@ -44,7 +67,7 @@ and open the template in the editor.
                         //collapsable: true,
                         css: "dhx_layout-cell--border_bottom",
                         gravity: false,
-                        height: headerHeight+'px'
+                        height: headerHeight + 'px'
                     },
                     {
                         cols: [{
@@ -91,7 +114,7 @@ and open the template in the editor.
                         //collapsable: true,
                         css: "dhx_layout-cell--border_top",
                         gravity: false,
-                        height: bottomHeight+'px',
+                        height: bottomHeight + 'px',
 
                     }
                 ]
@@ -367,28 +390,70 @@ and open the template in the editor.
 //<--Sidebar Tree/////////////////////////////////////////////////////////////
 //--> ObjectConfigurator//////////////////////////////////////////////////////
             function createObjectConfigurator(id) {
-                
-                var workSpaceHeight = $(window).height()-headerHeight-200;
-                var layoutObjConf = new dhx.Layout(null, { rows:[{id:"main"}]});
+
+
+                var layoutObjConf = new dhx.Layout(null, {rows: [{id: "main"}]});
+
+
+
+
                 var tabbarObjConf = new dhx.Tabbar(null, {
                     closeButtons: false,
-                    mode: "bottom",
-
+                    mode: "top",
+                    tabWidth: 100,
                     views: [
-                        {tab: "Fields", id:"fields", height: workSpaceHeight},
-                        {tab: "Forms", id:"forms", height: workSpaceHeight},
-                        {tab: "Code", id:"code", height: workSpaceHeight}
-
-
+                        {tab: "Fields", id: "fields"},
+                        {tab: "Forms", id: "forms"},
+                        {tab: "Code", id: "code"}
                     ]
 
                 });
-                layoutObjConf.cell("main").attach(tabbarObjConf);
+
+                tabsLayouts[id] = layoutObjConf;
                 tabbar.cell(id).attach(layoutObjConf);
+
+                var rows = [
+                    {
+                        id: "name",
+                        type: "input",
+                        label: "Name",
+                        icon: "dxi-magnify",
+                        //labelInline: true,
+                        placeholder: "John Doe"
+                    },
+
+                    {
+                        id: "email",
+                        type: "input",
+                        label: "Email",
+                        //labelInline: true,
+                        placeholder: "jd@mail.name"
+                    },
+                    {
+                        type: "checkbox",
+                        label: "I agree",
+                        name: "agree",
+                        labelInline: true,
+                        id: "agree",
+                        value: "checkboxvalue",
+                    },
+                    {
+                        type: "button",
+                        value: "Send",
+                        size: "medium",
+                        view: "flat",
+                        color: "primary"
+                    }
+                ]
+                var form = new dhx.Form("form_container", {cellCss:"oa", rows});
+                var layoutObjConfContent = new dhx.Layout(null, {rows: [{id: "mainContent"}]});
+                layoutObjConf.cell("main").attach(tabbarObjConf);
+                tabbarObjConf.cell('fields').attach(layoutObjConfContent);
+                layoutObjConfContent.cell('mainContent').attach(form);
             }
 //<--ObjectConfigurator//////////////////////////////////////////////////////
 //-->TabBar Workplace///////////////////////////////////////////////////////////
-            var tabsWorkplace = {};
+
             var tabbar = new dhx.Tabbar(null, {
                 closeButtons: true,
                 views: [
@@ -403,10 +468,15 @@ and open the template in the editor.
 
             tabbar.events.on("Close", function (id) {
                 tabsWorkplace[id] = false;
+                tabsLayouts[id] = null;
                 tabbar.setActive(tabbar.setActive(tabbar.getId(0)));
 
             });
             layout.cell('content').attach(tabbar);
+            tabbar.events.on("Change", function (activeId, prevId) {
+
+
+            });
 //<--TabBar Workplace//////////////////////////////////////////////////////////  
         </script>
 

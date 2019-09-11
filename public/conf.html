@@ -687,7 +687,7 @@ and open the template in the editor.
                 form.events.on("Change", function (id, new_value) {
                     var val = null;
                     if(id==='objectType'||id==='type'){
-                        if(id==='type' && form.getValue().type === 'Extend'){
+                        if(id==='type' && new_value === 'Extend'){
                             val = form.getValue().objectType;
                         }
                         if(id==='objectType'){

@@ -14,8 +14,9 @@ var app = express();
 app.use(express.static('public'));
 app.use(express.static('modules'));
 //app.use(express.bodyParser());
-app.use(express.json());       // to support JSON-encoded bodies
-app.use(express.urlencoded({extended: false})); // to support URL-encoded bodies
+var bodyParser = require('body-parser')
+app.use(bodyParser.json())      // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({extended: false})); // to support URL-encoded bodies
 app.listen(3000, function () {
     console.log('Start : localhost: ' + 3000);
 });
@@ -58,31 +59,47 @@ var objectSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     objectType: String,
     name: String,
-    fields: [
-        {fieldId: String,
-            alias: String,
-            type: String,
-            edtType: String,
-            helpText: String}],
-    tableParts: [
-        {
-            tablePartId: String,
-            helpText: String,
-            fields: [
-                {fieldId: String,
-                    type: String,
-                    edtType: String,
-                    alias: String,
-                    helpText: String}]
-
-        }],
-    forms: [
-        {
-            formId: String,
-            formType: String, //list, element
-            structure: Object
-        }
-    ],
+    fields: {
+			type: mongoose.Schema.Types.Mixed,
+			default: []
+		}
+//            [
+//        {fieldId: String,
+//            alias: String,
+//            type: String,
+//            edtType: Object,
+//            helpText: String}]
+    ,
+    tableParts: {
+			type: mongoose.Schema.Types.Mixed,
+			default: []
+		}
+//            [
+//        {
+//            tablePartId: String,
+//            helpText: String,
+//            fields: [
+//                {fieldId: String,
+//                    type: String,
+//                    edtType: Object,
+//                    alias: String,
+//                    helpText: String}]
+//
+//        }]
+    ,
+    forms: {
+			type: mongoose.Schema.Types.Mixed,
+			default: []
+		}
+//            [
+//        {
+//            formId: String,
+//            formType: String, //list, element
+//            structure: Object
+//        }
+//    ]
+    
+    ,
     code: String
 });
 
@@ -141,56 +158,67 @@ app.get('/metadata/:id', function (req, res) {
 });
 
 app.put('/metadata', function (req, res) {
+    var objectData = (req.body);
+    console.log(JSON.stringify(req.body));
+    //var fieldsStr = JSON.stringify(req.body.fields);
+    var fieldsStr = (req.body.fields);
+    MetaData.updateOne({_id: req.body._id}, objectData, function (err, result) {
+        if (err)
+            throw res.send(JSON.stringify(err));
+        
+        console.log(JSON.stringify(result));
+        res.send({"status": 200, "result": result});
+    });
 
 
 });
 app.post('/build', function (req, res) {
-    var rowsTest = [
-        {
-            id: "name",
-            type: "input",
-            label: "Name",
-            icon: "dxi-magnify",
-            placeholder: "John Doe"
-        },
-        {
-            id: "email",
-            type: "input",
-            label: "Email",
-            placeholder: "jd@mail.name"
-        },
-        {
-            id: "password",
-            type: "input",
-            label: "Password",
-            placeholder: "Enter password"
-        },
-        {
-            type: "checkbox",
-            label: "Save session",
-            name: "agree",
-            labelInline: true,
-            id: "savesession",
-            value: "checkboxvalue",
-        }];
-    var code = 'var layout = new dhx.Layout(null, { rows:[{id:"main"}]});';
-    code += 'var form = new dhx.Form(null, {rows: ' + JSON.stringify(rowsTest) + '});';
-    code += 'form.events.on("ButtonClick", function(id,e){\n\
-  alert(id);\n\
-});\n\
-form.events.on("Change",function(id, new_value){\n\
- alert(new_value);\n\
-});';
-    
-    code += 'layout.cell("main").attach(form);'
-    code += 'export {layout as form};';
-
-    fs.writeFileSync(__dirname + '/modules/users.js',code);
-    
-    var globalTxt = 'import * as Users from "./modules/users.js"';
-    fs.writeFileSync(__dirname + '/public/global.js',globalTxt);
-
-    res.send('Ok');
+//    var rowsTest = [
+//        {
+//            id: "name",
+//            type: "input",
+//            label: "Name",
+//            icon: "dxi-magnify",
+//            placeholder: "John Doe"
+//        },
+//        {
+//            id: "email",
+//            type: "input",
+//            label: "Email",
+//            placeholder: "jd@mail.name"
+//        },
+//        {
+//            id: "password",
+//            type: "input",
+//            label: "Password",
+//            placeholder: "Enter password"
+//        },
+//        {
+//            type: "checkbox",
+//            label: "Save session",
+//            name: "agree",
+//            labelInline: true,
+//            id: "savesession",
+//            value: "checkboxvalue",
+//        }];
+//    var code = 'var layout = new dhx.Layout(null, { rows:[{id:"main"}]});';
+//    code += 'var form = new dhx.Form(null, {rows: ' + JSON.stringify(rowsTest) + '});';
+//    code += 'form.events.on("ButtonClick", function(id,e){\n\
+//  alert(id);\n\
+//});\n\
+//form.events.on("Change",function(id, new_value){\n\
+// alert(new_value);\n\
+//});';
+//    
+//    code += 'layout.cell("main").attach(form);'
+//    code += 'export {layout as form};';
+//
+//    fs.writeFileSync(__dirname + '/modules/users.js',code);
+//    
+//    var globalTxt = 'import * as Users from "./modules/users.js"';
+//    fs.writeFileSync(__dirname + '/public/global.js',globalTxt);
+//
+//    res.send('Ok');
 
 });
 

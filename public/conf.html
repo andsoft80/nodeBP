@@ -27,6 +27,11 @@ and open the template in the editor.
                 overflow: auto;
             } 
         </style>
+        <style>
+            .ht .dhx_input {
+                height: 25px;
+            }
+        </style>
     </head>
     <body onload = "init()">
 
@@ -57,6 +62,35 @@ and open the template in the editor.
 //                $("[aria-labelledby='tab-content-main']").css("height", workSpaceHeight + 50);
 
             });
+            function createSmallToolBar() {
+                var toolbar = new dhx.Toolbar(null);
+                var data = [
+                    {
+                        type: "button",
+                        icon: "dxi-plus",
+                        size: "small",
+                        value: "",
+                        id: 'add'
+                    },
+
+                    {
+                        type: "button",
+                        icon: "dxi-vault",
+                        size: "small",
+                        value: "",
+                        id: 'save'
+                    },
+                    {
+                        type: "button",
+                        icon: "dxi-delete",
+                        size: "small",
+                        value: "",
+                        id: 'delete'
+                    }
+                ];
+                toolbar.data.parse(data);
+                return toolbar;
+            }
 
 
             var layout = new dhx.Layout("layout", {
@@ -67,7 +101,7 @@ and open the template in the editor.
                         //collapsable: true,
                         css: "dhx_layout-cell--border_bottom",
                         gravity: false,
-                        height: headerHeight + 'px'
+                        //height: headerHeight + 'px'
                     },
                     {
                         cols: [{
@@ -89,6 +123,7 @@ and open the template in the editor.
                             },
                             {
                                 resizable: true,
+                                //gravity: false,
                                 //rows: [{
                                 id: "content",
                                 css: "",
@@ -104,7 +139,7 @@ and open the template in the editor.
                                 gravity: false,
                                 css: "dhx_layout-cell--border_left",
                                 resizable: true,
-                                width: "200px"
+                                width: "300px"
                             },
                         ]
                     },
@@ -164,32 +199,8 @@ and open the template in the editor.
 
 //<--Main ToolBar////////////////////////////////////////////////////////////////
 //-->Sidebar ToolBar/////////////////////////////////////////////////////////////
-            var toolbar = new dhx.Toolbar(null);
-            var data = [
-                {
-                    type: "button",
-                    icon: "dxi-plus",
-                    size: "small",
-                    value: "",
-                    id: 'add'
-                },
 
-                {
-                    type: "button",
-                    icon: "dxi-vault",
-                    size: "small",
-                    value: "",
-                    id: 'save'
-                },
-                {
-                    type: "button",
-                    icon: "dxi-delete",
-                    size: "small",
-                    value: "",
-                    id: 'delete'
-                }
-            ];
-            toolbar.data.parse(data);
+            var toolbar = createSmallToolBar();
             layout.cell('s_toolbar').attach(toolbar);
 
             toolbar.events.on("Click", function (id, e) {
@@ -264,28 +275,60 @@ and open the template in the editor.
                     //headers: {"Access-Control-Allow-Origin": "*"},
                     data: objectModel,
                     success: function (data) {
-                        alert('Saved!');
-                        callform.destructor();
-                        loadTree(data.doc._id);
+                        if (data.status === 200) {
+                            alert('Saved!');
+                            callform.destructor();
+                            loadTree(data.doc._id);
+                        } else {
+                            alert(data);
+                        }
 
                     }
                 });
             }
             ;
-            function getObject() {
+            function getObject(id, promise) {
+
                 $.ajax({
                     type: "get",
-                    //async: false,
-                    url: "/metadata",
+                    async: false,
+                    url: "/metadata/" + id,
                     //headers: {"Access-Control-Allow-Origin": "*"},
 
                     success: function (data) {
+                        promise(data);
+
+
+                    }
+                });
+
+            }
+            ;
+            function updateObject(objectModel, callform, promise) {
+                $.ajax({
+                    type: "put",
+                    //async: false,
+                    url: "/metadata",
+                    //headers: {"Access-Control-Allow-Origin": "*"},
+                    data: JSON.stringify(objectModel),
+                    //data: objectModel,
+//                    dataType: 'json',
+                    contentType: 'application/json',
+                    success: function (data) {
+                        promise(data);
+                        if (data.status === 200) {
+                            alert('Updated!');
+                            callform.destructor();
+                        } else {
+                            alert(data);
+                        }
 
 
                     }
                 });
             }
             ;
+
 //-->Sidebar Tree/////////////////////////////////////////////////////////////
             function loadTree(id) {
                 var url = id ? '/metadata/' + id : '/metadata';
@@ -365,22 +408,27 @@ and open the template in the editor.
 
                         tabbar.addCell({
                             tab: tree.data.getItem(id).value,
-                            id: tree.data.getItem(id).value
+                            //id: tree.data.getItem(id).value
+                            id: id
 
                         }, 0);
 
 
-                        tabsWorkplace[tree.data.getItem(id).value] = true;
-                        tabbar.setActive(tree.data.getItem(id).value);
+                        //tabsWorkplace[tree.data.getItem(id).value] = true;
+                        tabsWorkplace[id] = true;
+                        //tabbar.setActive(tree.data.getItem(id).value);
+                        tabbar.setActive(id);
 //                        var c = tabbar.cell(tree.data.getItem(id).value);
 //                        c.attach(tree);
                         //alert(tabbar.length);
-                        createObjectConfigurator(tree.data.getItem(id).value);
+                        //createObjectConfigurator(tree.data.getItem(id).value);
+                        createObjectConfigurator(id);
 
 
                     } else {//exist Tab
 
-                        tabbar.setActive(tree.data.getItem(id).value)
+                        //tabbar.setActive(tree.data.getItem(id).value)
+                        tabbar.setActive(id);
 
 
                     }
@@ -391,6 +439,9 @@ and open the template in the editor.
 //--> ObjectConfigurator//////////////////////////////////////////////////////
             function createObjectConfigurator(id) {
 
+                var tableParts = null;
+                var forms = null;
+                var code = null;
 
                 var layoutObjConf = new dhx.Layout(null, {rows: [{id: "main"}]});
 
@@ -412,44 +463,291 @@ and open the template in the editor.
                 tabsLayouts[id] = layoutObjConf;
                 tabbar.cell(id).attach(layoutObjConf);
 
+
+                layoutObjConf.cell("main").attach(tabbarObjConf);
+
+
+                $.ajax({
+                    type: "get",
+                    //async: false,
+                    url: '/metadata/' + id,
+                    //headers: {"Access-Control-Allow-Origin": "*"},
+
+                    success: function (data) {
+                        createFieldTab(tabbarObjConf, data);
+
+                    }
+                });
+
+            }
+
+            function loadFielsdList(list, objId) {
+                getObject(objId, function (obj) {
+                    fields = obj.fields;
+                    var data = [];
+                    for (var i = 0; i < fields.length; i++) {
+                        var dataElement = {};
+                        dataElement.value = fields[i];
+                        dataElement.id = fields[i].id;
+                        data.push(dataElement);
+                    }
+                    list.data.parse(data);
+                });
+            }
+            function getFields(list) {
+                var fields = [];
+                var items = list.data.serialize();
+
+                for (var i = 0; i < items.length; i++) {
+                    fields.push(items[i].value);
+                }
+                return fields;
+            }
+            function saveFields(objId, list) {
+                var fields = getFields(list);
+
+                getObject(objId, function (obj) {
+                    obj.fields = fields;
+                    updateObject(obj, null, function (result) {
+
+                    });
+
+                });
+
+            }
+            function editField(data, list, field) {
                 var rows = [
                     {
-                        id: "name",
-                        type: "input",
-                        label: "Name",
-                        icon: "dxi-magnify",
+                        type: "text",
+                        //label: "text",
                         //labelInline: true,
-                        placeholder: "John Doe"
+                        value: "Create new field"
                     },
+                    {
+                        id: "fieldId",
+                        type: "input",
+                        label: "Id",
+                        placeholder: "Id"
+                    },
+                    {
+                        id: "alias",
+                        type: "input",
+                        label: "Alias",
+                        placeholder: "Alias"
+                    },
+                    {
+                        id: "helpText",
+                        type: "input",
+                        label: "Help",
+                        placeholder: "Help"
+                    },
+                    {
+                        //cellCss: "dhx_layout-cell--bordered",
+                        title: "Type setting",
+                        rows: [
+                            {
+                                id: "type",
+                                type: "select",
+                                label: "Type",
+                                options: [
+                                    {
+                                        value: "String",
+                                        content: "String"
+                                    },
+                                    {
+                                        value: "Numeric",
+                                        content: "Numeric"
+                                    },
+                                    {
+                                        value: "Integer",
+                                        content: "Integer"
+                                    },
+                                    {
+                                        value: "Date",
+                                        content: "Date"
+                                    },
+                                    {
+                                        value: "Text",
+                                        content: "Text"
+                                    },
+                                    {
+                                        value: "Extend",
+                                        content: "Extend Data Type(EDT)"
+                                    }
+                                ]
+                            },
+                            {
+                                id: "objectType",
+                                type: "select",
+                                label: "EDT type",
+                                options: [
+                                    {
+                                        value: "dir",
+                                        content: "Directory"
+                                    },
+                                    {
+                                        value: "doc",
+                                        content: "Document"
+                                    },
+                                    {
+                                        value: "setting",
+                                        content: "Setting"
+                                    },
+                                    {
+                                        value: "enum",
+                                        content: "Enum"
+                                    }
 
-                    {
-                        id: "email",
-                        type: "input",
-                        label: "Email",
-                        //labelInline: true,
-                        placeholder: "jd@mail.name"
+                                ]
+                            },
+                            {
+                                id: "objectName",
+                                type: "combo",
+                                label: "EDT name",
+                                //placeholder: "Help"
+
+                                //disabled: true
+                            }
+                        ]
                     },
                     {
-                        type: "checkbox",
-                        label: "I agree",
-                        name: "agree",
-                        labelInline: true,
-                        id: "agree",
-                        value: "checkboxvalue",
-                    },
-                    {
-                        type: "button",
-                        value: "Send",
-                        size: "medium",
-                        view: "flat",
-                        color: "primary"
+                        cols: [
+                            {
+                                type: "button",
+                                value: "Save",
+                                size: "medium",
+                                view: "flat",
+                                color: "primary",
+                                id: "saveField"
+                            },
+                            {
+                                type: "button",
+                                value: "Cancel",
+                                size: "medium",
+                                view: "flat",
+                                color: "primary",
+                                id: "cancelField"
+                            }
+                        ]}
+
+                ];
+                var form = new dhx.Form(null, {rows});
+                form.setValue(field);
+                layout.cell('rightbar').attach(form);
+                form.events.on("ButtonClick", function (id_btn, e) {
+                    var fields = getFields(list);
+                    var newField = {};
+
+                    if (id_btn === "saveField") {
+                        if (form.getValue().fieldId && form.getValue().alias) {
+                            if (form.getValue().type === "Extend" && !(form.getValue().objectType && form.getValue().objectName)) {
+                                alert("Input all EDT fields!");
+
+                            } else {
+                                var objectModel = data;
+                                newField.fieldId = form.getValue().fieldId;
+                                newField.alias = form.getValue().alias;
+                                newField.type = form.getValue().type;
+                                newField.helpText = form.getValue().helpText;
+                                if (form.getValue().type === "Extend") {
+                                    newField.edtType.objectType = form.getValue().objectType;
+                                    newField.edtType.objectName = form.getValue().objectName;
+                                }
+
+                                if (!field || list.selection.getItem().value.fieldId !== newField.fieldId) {
+                                    fields.push(newField);
+                                } else {
+                                    for (var i = 0; i < fields.length; i++) {
+                                        if (fields[i].fieldId === newField.fieldId) {
+                                            fields[i] = newField;
+                                            break;
+                                        }
+                                    }
+                                }
+                                objectModel.fields = fields;
+                                //alert(JSON.stringify(newField));
+                                //alert(JSON.stringify(objectModel));
+                                updateObject(objectModel, form, function (dat) {
+
+                                    loadFielsdList(list, data._id);
+                                });
+
+                            }
+
+                        } else {
+                            alert("Input id and alias setting's fields!");
+                        }
                     }
-                ]
-                var form = new dhx.Form("form_container", {cellCss:"oa", rows});
-                var layoutObjConfContent = new dhx.Layout(null, {rows: [{id: "mainContent"}]});
-                layoutObjConf.cell("main").attach(tabbarObjConf);
-                tabbarObjConf.cell('fields').attach(layoutObjConfContent);
-                layoutObjConfContent.cell('mainContent').attach(form);
+                    if (id_btn === "cancelField") {
+                        // layout.cell('rightbar').detach(form);
+                        form.destructor();
+                    }
+                });
+
+                form.events.on("Change", function (id, new_value) {
+                    var val = null;
+                    if(id==='objectType'||id==='type'){
+                        if(id==='type' && form.getValue().type === 'Extend'){
+                            val = form.getValue().objectType;
+                        }
+                        if(id==='objectType'){
+                            val = new_value;
+                        }
+                        
+                        alert(val);
+                    }
+                });
+            }
+            function createFieldTab(tabbarObjConf, data) {
+                /////--> Fields tab
+
+                var list = new dhx.List(null, {
+                    dragMode: "both",
+                    height: 300,
+                    multiselection: false,
+                    template: function (item) {
+                        var val = "<strong>" + item.value.fieldId + " </strong>" + JSON.stringify(item.value);
+                        return val;
+                    }
+                });
+                loadFielsdList(list, data._id);
+
+                var toolbarFields = createSmallToolBar();
+                var layoutObjConfContentFields = new dhx.Layout(null, {rows: [{id: "toolBar"}, {id: "mainContent"}]});
+                tabbarObjConf.cell('fields').attach(layoutObjConfContentFields);
+                layoutObjConfContentFields.cell('toolBar').attach(toolbarFields);
+                layoutObjConfContentFields.cell('mainContent').attach(list);
+                toolbarFields.events.on("Click", function (_id, e) {
+                    if (_id === 'add') {
+
+                        editField(data, list);
+
+                    }
+                    ;
+                    if (_id === 'save') {
+
+                        saveFields(data._id, list);
+
+                    }
+                    if (_id === 'delete') {
+                        if (confirm("Delete field?")) {
+                            var selid = list.selection.getId();
+                            list.data.remove(selid);
+                            saveFields(data._id, list);
+                        } else {
+
+                        }
+
+
+                    }
+
+                });
+                list.events.on("Click", function (_id, e) {
+                    var item = list.data.getItem(_id);
+                    editField(data, list, item.value);
+                });
+
+                ////<-- Fields tab
             }
 //<--ObjectConfigurator//////////////////////////////////////////////////////
 //-->TabBar Workplace///////////////////////////////////////////////////////////

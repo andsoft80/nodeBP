@@ -516,6 +516,7 @@ and open the template in the editor.
 
             }
             function editField(data, list, field) {
+
                 var rows = [
                     {
                         type: "text",
@@ -604,9 +605,7 @@ and open the template in the editor.
                                 id: "objectName",
                                 type: "combo",
                                 label: "EDT name",
-                                //placeholder: "Help"
 
-                                //disabled: true
                             }
                         ]
                     },
@@ -632,6 +631,7 @@ and open the template in the editor.
 
                 ];
                 var form = new dhx.Form(null, {rows});
+
                 form.setValue(field);
                 layout.cell('rightbar').attach(form);
                 form.events.on("ButtonClick", function (id_btn, e) {
@@ -686,15 +686,34 @@ and open the template in the editor.
 
                 form.events.on("Change", function (id, new_value) {
                     var val = null;
-                    if(id==='objectType'||id==='type'){
-                        if(id==='type' && new_value === 'Extend'){
+                    var vals = [];
+                    var valel = {};
+                    if (id === 'objectType' || id === 'type') {
+                        if (id === 'type' && new_value === 'Extend') {
                             val = form.getValue().objectType;
                         }
-                        if(id==='objectType'){
+                        if (id === 'objectType') {
                             val = new_value;
                         }
-                        
-                        alert(val);
+
+                        var titems = tree.data.getItems(val);
+                        for (var i = 0; i < titems.length; i++) {
+                            valel.value = titems[i].value;
+                            valel.id = titems[i].id;
+                            vals.push(valel);
+                        }
+                        rows[4].rows[2].data = vals;
+                        var item = form.getCombo('objectName');
+                        //form.setValue({objectName: vals[0].value});
+
+                        //form.setConfig({rows});
+                        //form.paint();
+                        alert(JSON.stringify(item));
+//                        if (id === 'type' && new_value === 'Extend') {
+//                            form.setValue({type: new_value});
+//                        }
+                        //layout.cell('rightbar').attach(form);
+
                     }
                 });
             }

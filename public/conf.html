@@ -601,12 +601,12 @@ and open the template in the editor.
 
                                 ]
                             },
-                            {
-                                id: "objectName",
-                                type: "combo",
-                                label: "EDT name",
-
-                            }
+//                            {
+//                                id: "objectName",
+//                                type: "combo",
+//                                label: "EDT name",
+//
+//                            }
                         ]
                     },
                     {
@@ -630,8 +630,16 @@ and open the template in the editor.
                         ]}
 
                 ];
-                var form = new dhx.Form(null, {rows});
 
+
+                //$('div[aria-labelledby="tab-content-objectType"]').attr( 'id', 'combo' );
+                $('div[aria-labelledby="tab-content-rightbar"]').attr( 'id', 'combo' );
+                
+                var form = new dhx.Form(null, {rows});
+                var combo = new dhx.Combobox(form, {
+                    label: "My Combo",
+                    hiddenLabel: true
+                });
                 form.setValue(field);
                 layout.cell('rightbar').attach(form);
                 form.events.on("ButtonClick", function (id_btn, e) {
@@ -687,7 +695,7 @@ and open the template in the editor.
                 form.events.on("Change", function (id, new_value) {
                     var val = null;
                     var vals = [];
-                    
+
                     if (id === 'objectType' || id === 'type') {
                         if (id === 'type' && new_value === 'Extend') {
                             val = form.getValue().objectType;
@@ -704,12 +712,12 @@ and open the template in the editor.
                             vals.push(valel);
                         }
                         rows[4].rows[2].data = vals;
-                        
+
                         //form.setValue({objectName: vals[0].value});
 
                         form.setConfig({rows});
                         //form.paint();
-                       // alert(JSON.stringify(item));
+                        // alert(JSON.stringify(item));
 //                        if (id === 'type' && new_value === 'Extend') {
 //                            form.setValue({type: new_value});
 //                        }

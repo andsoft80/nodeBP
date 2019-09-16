@@ -601,12 +601,12 @@ and open the template in the editor.
 
                                 ]
                             },
-//                            {
-//                                id: "objectName",
-//                                type: "combo",
-//                                label: "EDT name",
-//
-//                            }
+                            {
+                                id: "objectName",
+                                type: "combo",
+                                label: "EDT name",
+
+                            }
                         ]
                     },
                     {
@@ -691,6 +691,7 @@ and open the template in the editor.
                         form.destructor();
                     }
                 });
+                
 
                 form.events.on("Change", function (id, new_value) {
                     var val = null;

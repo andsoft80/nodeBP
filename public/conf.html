@@ -14,6 +14,9 @@ and open the template in the editor.
         <script src="jquery-3.4.1.min.js" type="text/javascript"></script>
         <link href="index.css" rel="stylesheet" type="text/css"/>
         <script src="global.js" type="text/javascript"></script>
+        <!--        <script src="codebase/dhtmlx.js" type="text/javascript"></script>
+                <link href="codebase/dhtmlx.css" rel="stylesheet" type="text/css"/>-->
+
         <style>
             html, body {height:100%;}
             .dhx_sample-container {
@@ -139,7 +142,18 @@ and open the template in the editor.
                                 gravity: false,
                                 css: "dhx_layout-cell--border_left",
                                 resizable: true,
-                                width: "300px"
+                                width: "300px",
+                                rows: [
+                                    {
+                                        id: "r_props"
+                                    },
+                                    {
+                                        id: "r_props2"
+                                    },
+                                    {
+                                        id: "r_actions"
+                                    },
+                                ]
                             },
                         ]
                     },
@@ -542,73 +556,104 @@ and open the template in the editor.
                         label: "Help",
                         placeholder: "Help"
                     },
+//                    {
+//                        //cellCss: "dhx_layout-cell--bordered",
+//                        title: "Type setting",
+//                        rows: [
                     {
-                        //cellCss: "dhx_layout-cell--bordered",
-                        title: "Type setting",
-                        rows: [
+                        id: "type",
+                        type: "select",
+                        label: "Type",
+                        options: [
                             {
-                                id: "type",
-                                type: "select",
-                                label: "Type",
-                                options: [
-                                    {
-                                        value: "String",
-                                        content: "String"
-                                    },
-                                    {
-                                        value: "Numeric",
-                                        content: "Numeric"
-                                    },
-                                    {
-                                        value: "Integer",
-                                        content: "Integer"
-                                    },
-                                    {
-                                        value: "Date",
-                                        content: "Date"
-                                    },
-                                    {
-                                        value: "Text",
-                                        content: "Text"
-                                    },
-                                    {
-                                        value: "Extend",
-                                        content: "Extend Data Type(EDT)"
-                                    }
-                                ]
+                                value: "String",
+                                content: "String"
                             },
                             {
-                                id: "objectType",
-                                type: "select",
-                                label: "EDT type",
-                                options: [
-                                    {
-                                        value: "dir",
-                                        content: "Directory"
-                                    },
-                                    {
-                                        value: "doc",
-                                        content: "Document"
-                                    },
-                                    {
-                                        value: "setting",
-                                        content: "Setting"
-                                    },
-                                    {
-                                        value: "enum",
-                                        content: "Enum"
-                                    }
-
-                                ]
+                                value: "Numeric",
+                                content: "Numeric"
                             },
                             {
-                                id: "objectName",
-                                type: "combo",
-                                label: "EDT name",
-
+                                value: "Integer",
+                                content: "Integer"
+                            },
+                            {
+                                value: "Date",
+                                content: "Date"
+                            },
+                            {
+                                value: "Text",
+                                content: "Text"
+                            },
+                            {
+                                value: "Extend",
+                                content: "Extend Data Type(EDT)"
                             }
                         ]
                     },
+                    {
+                        id: "objectType",
+                        type: "select",
+                        label: "EDT type",
+                        options: [
+                            {
+                                value: "dir",
+                                content: "Directory"
+                            },
+                            {
+                                value: "doc",
+                                content: "Document"
+                            },
+                            {
+                                value: "setting",
+                                content: "Setting"
+                            },
+                            {
+                                value: "enum",
+                                content: "Enum"
+                            }
+
+                            //]
+                            //},
+//                            {
+//                                id: "objectName",
+//                                type: "combo",
+//                                label: "EDT name",
+//
+//                            }
+                        ]
+                    },
+//                    {
+//                        cols: [
+//                            {
+//                                type: "button",
+//                                value: "Save",
+//                                size: "medium",
+//                                view: "flat",
+//                                color: "primary",
+//                                id: "saveField"
+//                            },
+//                            {
+//                                type: "button",
+//                                value: "Cancel",
+//                                size: "medium",
+//                                view: "flat",
+//                                color: "primary",
+//                                id: "cancelField"
+//                            }
+//                        ]}
+
+                ];
+
+                var rows2 = [
+
+                    {
+                        id: "objectName",
+                        type: "combo",
+                        label: "EDT name",
+
+                    },
+
                     {
                         cols: [
                             {
@@ -632,23 +677,26 @@ and open the template in the editor.
                 ];
 
 
-                //$('div[aria-labelledby="tab-content-objectType"]').attr( 'id', 'combo' );
-                $('div[aria-labelledby="tab-content-rightbar"]').attr( 'id', 'combo' );
-                
                 var form = new dhx.Form(null, {rows});
-                var combo = new dhx.Combobox(form, {
-                    label: "My Combo",
-                    hiddenLabel: true
-                });
+                var form2 = new dhx.Form(null, {rows: rows2});
+
                 form.setValue(field);
-                layout.cell('rightbar').attach(form);
-                form.events.on("ButtonClick", function (id_btn, e) {
+                if (field.type === 'Extend') {
+                    form.setValue({'objectType': field.edtType.objectType});
+                    //form.events.fire("Change", ['type', 'Extend']);
+                    fillEdtName(field.edtType.objectType, form2, rows2);
+                    form.setValue({'objectName': field.edtType.objectName});
+                }
+
+                layout.cell('r_props').attach(form);
+                layout.cell('r_props2').attach(form2);
+                form2.events.on("ButtonClick", function (id_btn, e) {
                     var fields = getFields(list);
-                    var newField = {};
+                    var newField = {edtType: {}};
 
                     if (id_btn === "saveField") {
                         if (form.getValue().fieldId && form.getValue().alias) {
-                            if (form.getValue().type === "Extend" && !(form.getValue().objectType && form.getValue().objectName)) {
+                            if (form.getValue().type === "Extend" && !(form.getValue().objectType && form2.getValue().objectName)) {
                                 alert("Input all EDT fields!");
 
                             } else {
@@ -659,7 +707,7 @@ and open the template in the editor.
                                 newField.helpText = form.getValue().helpText;
                                 if (form.getValue().type === "Extend") {
                                     newField.edtType.objectType = form.getValue().objectType;
-                                    newField.edtType.objectName = form.getValue().objectName;
+                                    newField.edtType.objectName = form2.getValue().objectName[0];
                                 }
 
                                 if (!field || list.selection.getItem().value.fieldId !== newField.fieldId) {
@@ -675,8 +723,9 @@ and open the template in the editor.
                                 objectModel.fields = fields;
                                 //alert(JSON.stringify(newField));
                                 //alert(JSON.stringify(objectModel));
-                                updateObject(objectModel, form, function (dat) {
-
+                                updateObject(objectModel, null, function (dat) {
+                                    form.destructor();
+                                    form2.destructor();
                                     loadFielsdList(list, data._id);
                                 });
 
@@ -689,13 +738,15 @@ and open the template in the editor.
                     if (id_btn === "cancelField") {
                         // layout.cell('rightbar').detach(form);
                         form.destructor();
+                        form2.destructor();
                     }
                 });
-                
+
 
                 form.events.on("Change", function (id, new_value) {
+
                     var val = null;
-                    var vals = [];
+                    
 
                     if (id === 'objectType' || id === 'type') {
                         if (id === 'type' && new_value === 'Extend') {
@@ -704,28 +755,46 @@ and open the template in the editor.
                         if (id === 'objectType') {
                             val = new_value;
                         }
-
-                        var titems = tree.data.getItems(val);
-                        for (var i = 0; i < titems.length; i++) {
-                            var valel = {};
-                            valel.value = titems[i].value;
-                            valel.id = titems[i].id;
-                            vals.push(valel);
-                        }
-                        rows[4].rows[2].data = vals;
-
-                        //form.setValue({objectName: vals[0].value});
-
-                        form.setConfig({rows});
-                        //form.paint();
-                        // alert(JSON.stringify(item));
-//                        if (id === 'type' && new_value === 'Extend') {
-//                            form.setValue({type: new_value});
+                           
+                            fillEdtName(val, form2, rows2);
+//
+//                        var titems = tree.data.getItems(val);
+//                        for (var i = 0; i < titems.length; i++) {
+//                            var valel = {};
+//                            valel.value = titems[i].value;
+//                            valel.id = titems[i].id;
+//                            vals.push(valel);
 //                        }
-                        layout.cell('rightbar').attach(form);
+//
+//                        rows2[0].data = vals;
+//
+//
+//
+//                        form2.setConfig({rows: rows2});
+//
+//                        layout.cell('r_props2').attach(form2);
 
                     }
                 });
+            }
+
+            function fillEdtName(val, form, rows) {
+                var vals = [];
+                var titems = tree.data.getItems(val);
+                for (var i = 0; i < titems.length; i++) {
+                    var valel = {};
+                    valel.value = titems[i].value;
+                    valel.id = titems[i].id;
+                    vals.push(valel);
+                }
+
+                rows[0].data = vals;
+
+
+
+                form.setConfig({rows});
+
+                layout.cell('r_props2').attach(form);
             }
             function createFieldTab(tabbarObjConf, data) {
                 /////--> Fields tab

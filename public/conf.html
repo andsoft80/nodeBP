@@ -259,7 +259,8 @@ and open the template in the editor.
 
                     ];
                     var form = new dhx.Form(null, {rows});
-                    layout.cell('rightbar').attach(form);
+                    layout.cell('r_props').attach(form);
+                    layout.cell('r_props2').attachHTML("<div></div>");
                     form.events.on("ButtonClick", function (id, e) {
                         if (id === "saveObject") {
                             if (form.getValue().name) {
@@ -679,15 +680,17 @@ and open the template in the editor.
 
                 var form = new dhx.Form(null, {rows});
                 var form2 = new dhx.Form(null, {rows: rows2});
-
-                form.setValue(field);
-                if (field.type === 'Extend') {
-                    form.setValue({'objectType': field.edtType.objectType});
-                    //form.events.fire("Change", ['type', 'Extend']);
-                    fillEdtName(field.edtType.objectType, form2, rows2);
-                    form.setValue({'objectName': field.edtType.objectName});
+                if (field){
+                    form.setValue(field);
+                    if (field.type === 'Extend') {
+                        form.setValue({'objectType': field.edtType.objectType});
+                        //form.events.fire("Change", ['type', 'Extend']);
+                        fillEdtName(field.edtType.objectType, form2, rows2);
+                        //alert(JSON.stringify(tree.data.getItem(field.edtType.objectName).value));
+                        //form2.setValue({'objectName': tree.data.getItem(field.edtType.objectName).value});
+                        form2.setValue({'objectName': field.edtType.objectName});
+                    }
                 }
-
                 layout.cell('r_props').attach(form);
                 layout.cell('r_props2').attach(form2);
                 form2.events.on("ButtonClick", function (id_btn, e) {
@@ -746,7 +749,7 @@ and open the template in the editor.
                 form.events.on("Change", function (id, new_value) {
 
                     var val = null;
-                    
+
 
                     if (id === 'objectType' || id === 'type') {
                         if (id === 'type' && new_value === 'Extend') {
@@ -755,8 +758,8 @@ and open the template in the editor.
                         if (id === 'objectType') {
                             val = new_value;
                         }
-                           
-                            fillEdtName(val, form2, rows2);
+
+                        fillEdtName(val, form2, rows2);
 //
 //                        var titems = tree.data.getItems(val);
 //                        for (var i = 0; i < titems.length; i++) {
@@ -795,6 +798,7 @@ and open the template in the editor.
                 form.setConfig({rows});
 
                 layout.cell('r_props2').attach(form);
+
             }
             function createFieldTab(tabbarObjConf, data) {
                 /////--> Fields tab
@@ -817,6 +821,7 @@ and open the template in the editor.
                 layoutObjConfContentFields.cell('mainContent').attach(list);
                 toolbarFields.events.on("Click", function (_id, e) {
                     if (_id === 'add') {
+                        //alert('add');
 
                         editField(data, list);
 

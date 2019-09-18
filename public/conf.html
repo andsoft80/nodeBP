@@ -680,7 +680,7 @@ and open the template in the editor.
 
                 var form = new dhx.Form(null, {rows});
                 var form2 = new dhx.Form(null, {rows: rows2});
-                if (field){
+                if (field) {
                     form.setValue(field);
                     if (field.type === 'Extend') {
                         form.setValue({'objectType': field.edtType.objectType});
@@ -812,13 +812,32 @@ and open the template in the editor.
                         return val;
                     }
                 });
+                var listForm = new dhx.List(null, {
+                    dragMode: "both",
+                    height: 300,
+                    multiselection: false,
+                    template: function (item) {
+                        var val = "<strong>" + item.value.fieldId + " </strong>";
+                        return val;
+                    }
+                });
                 loadFielsdList(list, data._id);
 
                 var toolbarFields = createSmallToolBar();
-                var layoutObjConfContentFields = new dhx.Layout(null, {rows: [{id: "toolBar"}, {id: "mainContent"}]});
+                var layoutObjConfContentFields = new dhx.Layout(null, {
+                    rows: [
+                        {id: "toolBar"},
+                        {cols: [
+                                {id: "mainContent", header: "All fields", width: 300},
+                                {width: 10},
+                                {id: "subContent", header: "List Form's fields"}
+                            ]}
+                    ]
+                });
                 tabbarObjConf.cell('fields').attach(layoutObjConfContentFields);
                 layoutObjConfContentFields.cell('toolBar').attach(toolbarFields);
                 layoutObjConfContentFields.cell('mainContent').attach(list);
+                layoutObjConfContentFields.cell('subContent').attach(listForm);
                 toolbarFields.events.on("Click", function (_id, e) {
                     if (_id === 'add') {
                         //alert('add');

@@ -1,6 +1,9 @@
 var express = require('express');
 var fs = require('fs');
 var mongoose = require('mongoose');
+var mysql = require('mysql');
+var mySqlServerHost = 'localhost';
+
 mongoose.connect('mongodb://localhost/bp', {useNewUrlParser: true}, function (err) {
 
     if (err)
@@ -104,7 +107,8 @@ var objectSchema = mongoose.Schema({
 //    ]
 
     ,
-    code: String
+    code: String,
+    changed: {type: Boolean, default: true}
 });
 
 var MetaData = mongoose.model('MetaData', objectSchema);
@@ -176,53 +180,74 @@ app.put('/metadata', function (req, res) {
 
 
 });
+
+function buildObject(id) {
+//-->db///////////////////////
+    var con = mysql.createConnection({
+        host: mySqlServerHost,
+        user: 'root',
+        password: 'root',
+        database: 'bp'
+
+
+    });
+    con.connect(function (err) {
+        if (err)
+            throw err;
+
+        console.log('Connected to MySQL...');
+    });
+    if (con) {
+
+        var query = MetaData.findById(id);
+        query.exec(function (err, doc) {
+            if (doc) {
+                if (doc.fields.length > 0) {
+                    //console.log(doc.fields.length);
+                    var sqlStr = "show table like "+"'"+doc.name+"'";
+                    con.query(sqlStr, function (err, result) {
+                        if (err)
+                            throw err;
+                        if(result.length>0){//table exist
+                            
+                        }
+                        else{//table not exist
+                            
+                        }
+
+                    });
+                }
+            } else {
+                return 500;
+            }
+        });
+        return 200;
+    } else {
+        console.log('Connection to MySQL failed!!!');
+        return 500;
+    }
+
+
+
+
+    con.end();
+//<--db/////////////////////////
+
+}
 app.post('/build', function (req, res) {
-//    var rowsTest = [
-//        {
-//            id: "name",
-//            type: "input",
-//            label: "Name",
-//            icon: "dxi-magnify",
-//            placeholder: "John Doe"
-//        },
-//        {
-//            id: "email",
-//            type: "input",
-//            label: "Email",
-//            placeholder: "jd@mail.name"
-//        },
-//        {
-//            id: "password",
-//            type: "input",
-//            label: "Password",
-//            placeholder: "Enter password"
-//        },
-//        {
-//            type: "checkbox",
-//            label: "Save session",
-//            name: "agree",
-//            labelInline: true,
-//            id: "savesession",
-//            value: "checkboxvalue",
-//        }];
-//    var code = 'var layout = new dhx.Layout(null, { rows:[{id:"main"}]});';
-//    code += 'var form = new dhx.Form(null, {rows: ' + JSON.stringify(rowsTest) + '});';
-//    code += 'form.events.on("ButtonClick", function(id,e){\n\
-//  alert(id);\n\
-//});\n\
-//form.events.on("Change",function(id, new_value){\n\
-// alert(new_value);\n\
-//});';
-//    
-//    code += 'layout.cell("main").attach(form);'
-//    code += 'export {layout as form};';
-//
-//    fs.writeFileSync(__dirname + '/modules/users.js',code);
-//    
-//    var globalTxt = 'import * as Users from "./modules/users.js"';
-//    fs.writeFileSync(__dirname + '/public/global.js',globalTxt);
-//
-//    res.send('Ok');
+    var result = {};
+    var objectData = (req.body);
+    if (req.body.id) {
+        if (buildObject(req.body.id) === 200) {
+            res.send({"status": 200});
+        } else {
+            res.send({"status": 500});
+        }
+        ;
+    } else {
+
+    }
+
 
 });
 

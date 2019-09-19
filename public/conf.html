@@ -323,6 +323,8 @@ and open the template in the editor.
             }
             ;
             function updateObject(objectModel, callform, promise) {
+                objectModel.__v++;
+                objectModel.changed = true;
                 $.ajax({
                     type: "put",
                     //async: false,
@@ -859,7 +861,7 @@ and open the template in the editor.
 
                 var toolbarFields = createSmallToolBar();
                 toolbarFields.data.add({
-                    type: "button", value: "Test list form",id:"test" ,size:"small"
+                    type: "button", value: "Test list form", id: "test", size: "small"
                 });
                 var layoutObjConfContentFields = new dhx.Layout(null, {
                     rows: [
@@ -910,6 +912,22 @@ and open the template in the editor.
                         }
 
 
+                    }
+                    if (_id === 'test') {
+                        var parcel = {};
+                        parcel.id = data._id;
+                        $.ajax({
+                            type: "post",
+                            async: false,
+                            url: "/build",
+                            //headers: {"Access-Control-Allow-Origin": "*"},
+                            data: parcel,
+                            success: function (data) {
+                                promise(data);
+
+
+                            }
+                        });
                     }
 
                 });

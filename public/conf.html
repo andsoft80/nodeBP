@@ -34,6 +34,9 @@ and open the template in the editor.
             .ht .dhx_input {
                 height: 25px;
             }
+            .baseheight{
+                height: 500px;
+            }
         </style>
     </head>
     <body onload = "init()">
@@ -332,7 +335,7 @@ and open the template in the editor.
                     success: function (data) {
                         promise(data);
                         if (data.status === 200) {
-                            alert('Updated!');
+                            //alert('Updated!');
                             callform.destructor();
                         } else {
                             alert(data);
@@ -509,6 +512,19 @@ and open the template in the editor.
                     list.data.parse(data);
                 });
             }
+            function loadFielsdListForm(list, objId) {
+                getObject(objId, function (obj) {
+                    fields = obj.listForm;
+                    var data = [];
+                    for (var i = 0; i < fields.length; i++) {
+                        var dataElement = {};
+                        dataElement.value = fields[i];
+                        dataElement.id = fields[i].id;
+                        data.push(dataElement);
+                    }
+                    list.data.parse(data);
+                });
+            }
             function getFields(list) {
                 var fields = [];
                 var items = list.data.serialize();
@@ -523,6 +539,18 @@ and open the template in the editor.
 
                 getObject(objId, function (obj) {
                     obj.fields = fields;
+                    updateObject(obj, null, function (result) {
+
+                    });
+
+                });
+
+            }
+            function saveFieldsListForm(objId, list) {
+                var fields = getFields(list);
+
+                getObject(objId, function (obj) {
+                    obj.listForm = fields;
                     updateObject(obj, null, function (result) {
 
                     });
@@ -805,7 +833,9 @@ and open the template in the editor.
 
                 var list = new dhx.List(null, {
                     dragMode: "both",
-                    height: 300,
+                    dragCopy: true,
+
+                    css: "dhx_widget--bordered baseheight",
                     multiselection: false,
                     template: function (item) {
                         var val = "<strong>" + item.value.fieldId + " </strong>" + JSON.stringify(item.value);
@@ -814,7 +844,10 @@ and open the template in the editor.
                 });
                 var listForm = new dhx.List(null, {
                     dragMode: "both",
-                    height: 300,
+                    //height: 500,
+                    width: 100,
+                    itemHeight: 35,
+                    css: "dhx_widget--bordered baseheight",
                     multiselection: false,
                     template: function (item) {
                         var val = "<strong>" + item.value.fieldId + " </strong>";
@@ -822,15 +855,19 @@ and open the template in the editor.
                     }
                 });
                 loadFielsdList(list, data._id);
+                loadFielsdListForm(listForm, data._id);
 
                 var toolbarFields = createSmallToolBar();
+                toolbarFields.data.add({
+                    type: "button", value: "Test list form",id:"test" ,size:"small"
+                });
                 var layoutObjConfContentFields = new dhx.Layout(null, {
                     rows: [
                         {id: "toolBar"},
                         {cols: [
-                                {id: "mainContent", header: "All fields", width: 300},
-                                {width: 10},
-                                {id: "subContent", header: "List Form's fields"}
+                                {id: "mainContent", header: "All fields", width: 300, gravity: true},
+                                {width: 10, gravity: false},
+                                {id: "subContent", header: "List Form's fields", gravity: true}
                             ]}
                     ]
                 });
@@ -849,13 +886,25 @@ and open the template in the editor.
                     if (_id === 'save') {
 
                         saveFields(data._id, list);
+                        saveFieldsListForm(data._id, listForm);
+                        alert('Done!');
 
                     }
                     if (_id === 'delete') {
                         if (confirm("Delete field?")) {
                             var selid = list.selection.getId();
-                            list.data.remove(selid);
-                            saveFields(data._id, list);
+                            if (selid) {
+                                list.data.remove(selid);
+                                saveFields(data._id, list);
+                            }
+
+                            var selid = listForm.selection.getId();
+                            if (selid) {
+                                listForm.data.remove(selid);
+                                saveFieldsListForm(data._id, listForm);
+                            }
+
+                            alert('Done!');
                         } else {
 
                         }

@@ -60,9 +60,9 @@ var objectSchema = mongoose.Schema({
     objectType: String,
     name: String,
     fields: {
-			type: mongoose.Schema.Types.Mixed,
-			default: []
-		}
+        type: mongoose.Schema.Types.Mixed,
+        default: []
+    }
 //            [
 //        {fieldId: String,
 //            alias: String,
@@ -71,9 +71,9 @@ var objectSchema = mongoose.Schema({
 //            helpText: String}]
     ,
     tableParts: {
-			type: mongoose.Schema.Types.Mixed,
-			default: []
-		}
+        type: mongoose.Schema.Types.Mixed,
+        default: []
+    }
 //            [
 //        {
 //            tablePartId: String,
@@ -87,10 +87,14 @@ var objectSchema = mongoose.Schema({
 //
 //        }]
     ,
-    forms: {
-			type: mongoose.Schema.Types.Mixed,
-			default: []
-		}
+    listForm: {
+        type: mongoose.Schema.Types.Mixed,
+        default: []
+    },
+    elementForm: {
+        type: mongoose.Schema.Types.Mixed,
+        default: []
+    }
 //            [
 //        {
 //            formId: String,
@@ -98,7 +102,7 @@ var objectSchema = mongoose.Schema({
 //            structure: Object
 //        }
 //    ]
-    
+
     ,
     code: String
 });
@@ -165,7 +169,7 @@ app.put('/metadata', function (req, res) {
     MetaData.updateOne({_id: req.body._id}, objectData, function (err, result) {
         if (err)
             throw res.send(JSON.stringify(err));
-        
+
         console.log(JSON.stringify(result));
         res.send({"status": 200, "result": result});
     });

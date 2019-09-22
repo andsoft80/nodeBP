@@ -204,15 +204,95 @@ function buildObject(id) {
             if (doc) {
                 if (doc.fields.length > 0) {
                     //console.log(doc.fields.length);
-                    var sqlStr = "show table like "+"'"+doc.name+"'";
+                    var sqlStr = "show tables like " + "'" + doc.name + "'";
                     con.query(sqlStr, function (err, result) {
                         if (err)
                             throw err;
-                        if(result.length>0){//table exist
-                            
-                        }
-                        else{//table not exist
-                            
+                        if (result.length > 0) {//table exist
+                            var sql = "SHOW COLUMNS FROM " + doc.name;
+                            con.query(sql, function (err, result) {
+                                if (err)
+                                    throw err;
+
+                                //console.log(JSON.stringify(result));
+                                var fieldsDB = [];
+                                for (var i = 0; i < result.length; i++) {
+                                    var fieldDB = {};
+                                    fieldDB.fieldId = result[i].Field;
+                                    fieldDB.delete = true;
+                                    fieldDB.changeType = true;
+                                    //fieldDB.Null = result[i].Null;
+                                    if (result[i].Type.indexOf('bigint') > -1) {
+                                        fieldDB.type = "Integer";
+                                    }
+                                    if (result[i].Type.indexOf('varchar(255)') > -1) {
+                                        fieldDB.type = "String";
+                                    }
+                                    if (result[i].Type.indexOf('decimal') > -1) {
+                                        fieldDB.type = "Numeric";
+                                    }
+                                    if (result[i].Type.indexOf('date') > -1) {
+                                        fieldDB.type = "Date";
+                                    }
+                                    if (result[i].Type.indexOf('text') > -1) {
+                                        fieldDB.type = "Text";
+                                    }
+                                    fieldsDB.push(fieldDB);
+
+                                }
+                                var fdbl = fieldsDB.length;
+                                for (var i = 0; i < doc.fields.length; i++) {
+                                    var push = true;
+                                    for (var j = 0; j < fdbl; j++) {
+                                        if (doc.fields[i].fieldId === fieldsDB[j].fieldId) {
+                                            push = false;
+                                            fieldsDB[j].delete = false;
+                                            if (fieldsDB[j].type === doc.fields[i].type || ((fieldsDB[j].type==='String')&&(doc.fields[i].type==='Extend'))) {
+                                                fieldsDB[j].changeType = false;
+                                            }
+
+                                        }
+                                    }
+                                    if (push) {
+                                        fieldsDB.push(doc.fields[i]);
+                                    }
+                                }
+                                //console.log(JSON.stringify(fieldsDB));
+                                
+                                
+                            });
+
+                        } else {//table not exist
+                            //var sql = "CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))";
+                            var sql = "CREATE TABLE " + doc.name + " (";
+                            for (var i = 0; i < doc.fields.length; i++) {
+                                var field = doc.fields[i];
+                                if (field.type === 'String') {
+                                    sql = sql + field.fieldId + " varchar(255),"
+                                }
+                                if (field.type === 'Integer') {
+                                    sql = sql + field.fieldId + " bigint,"
+                                }
+                                if (field.type === 'Numeric') {
+                                    sql = sql + field.fieldId + " decimal(20.6),"
+                                }
+                                if (field.type === 'Date') {
+                                    sql = sql + field.fieldId + " datetime,"
+                                }
+
+                                if (field.type === 'Text') {
+                                    sql = sql + field.fieldId + " text,"
+                                }
+                                if (field.type === 'Extend') {
+                                    sql = sql + field.fieldId + " varchar(255),"
+                                }
+                            }
+                            sql = sql.substring(0, sql.length - 1);
+                            sql = sql + ")";
+                            con.query(sql, function (err, result) {
+                                if (err)
+                                    throw err;
+                            });
                         }
 
                     });
@@ -238,7 +318,7 @@ app.post('/build', function (req, res) {
     var result = {};
     var objectData = (req.body);
     if (req.body.id) {
-        if (buildObject(req.body.id) === 200) {
+        if (buildObject(objectData.id) === 200) {
             res.send({"status": 200});
         } else {
             res.send({"status": 500});

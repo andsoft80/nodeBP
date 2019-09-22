@@ -180,6 +180,47 @@ app.put('/metadata', function (req, res) {
 
 
 });
+function dbTypeToUserType(dbType) {
+    var s = "";
+    if (dbType.indexOf('bigint') > -1) {
+        return "Integer";
+    }
+    if (dbType.indexOf('varchar(255)') > -1) {
+        return "String";
+    }
+    if (dbType.indexOf('decimal') > -1) {
+        return "Numeric";
+    }
+    if (dbType.indexOf('date') > -1) {
+        return  "Date";
+    }
+    if (dbType.indexOf('text') > -1) {
+        return "Text";
+    }
+    
+    return s;
+}
+
+function userTypeToDbType(usrType){
+    var s = "";
+    if (usrType.indexOf('Integer') > -1) {
+        return "bigint";
+    }
+    if (usrType.indexOf('String') > -1 || dbType.indexOf('Extend')) {
+        return "varchar(255)";
+    }
+    if (usrType.indexOf('Numeric') > -1) {
+        return "decimal";
+    }
+    if (usrType.indexOf('Date') > -1) {
+        return  "date";
+    }
+    if (usrType.indexOf('Text') > -1) {
+        return "text";
+    }
+    
+    return s;    
+}
 
 function buildObject(id) {
 //-->db///////////////////////
@@ -222,21 +263,7 @@ function buildObject(id) {
                                     fieldDB.delete = true;
                                     fieldDB.changeType = true;
                                     //fieldDB.Null = result[i].Null;
-                                    if (result[i].Type.indexOf('bigint') > -1) {
-                                        fieldDB.type = "Integer";
-                                    }
-                                    if (result[i].Type.indexOf('varchar(255)') > -1) {
-                                        fieldDB.type = "String";
-                                    }
-                                    if (result[i].Type.indexOf('decimal') > -1) {
-                                        fieldDB.type = "Numeric";
-                                    }
-                                    if (result[i].Type.indexOf('date') > -1) {
-                                        fieldDB.type = "Date";
-                                    }
-                                    if (result[i].Type.indexOf('text') > -1) {
-                                        fieldDB.type = "Text";
-                                    }
+                                    fieldDB.type = dbTypeToUserType(result[i].Type)
                                     fieldsDB.push(fieldDB);
 
                                 }
@@ -247,7 +274,7 @@ function buildObject(id) {
                                         if (doc.fields[i].fieldId === fieldsDB[j].fieldId) {
                                             push = false;
                                             fieldsDB[j].delete = false;
-                                            if (fieldsDB[j].type === doc.fields[i].type || ((fieldsDB[j].type==='String')&&(doc.fields[i].type==='Extend'))) {
+                                            if (fieldsDB[j].type === doc.fields[i].type || ((fieldsDB[j].type === 'String') && (doc.fields[i].type === 'Extend'))) {
                                                 fieldsDB[j].changeType = false;
                                             }
 
@@ -257,9 +284,9 @@ function buildObject(id) {
                                         fieldsDB.push(doc.fields[i]);
                                     }
                                 }
-                                //console.log(JSON.stringify(fieldsDB));
-                                
-                                
+                                console.log(JSON.stringify(fieldsDB));
+
+
                             });
 
                         } else {//table not exist
@@ -267,25 +294,9 @@ function buildObject(id) {
                             var sql = "CREATE TABLE " + doc.name + " (";
                             for (var i = 0; i < doc.fields.length; i++) {
                                 var field = doc.fields[i];
-                                if (field.type === 'String') {
-                                    sql = sql + field.fieldId + " varchar(255),"
-                                }
-                                if (field.type === 'Integer') {
-                                    sql = sql + field.fieldId + " bigint,"
-                                }
-                                if (field.type === 'Numeric') {
-                                    sql = sql + field.fieldId + " decimal(20.6),"
-                                }
-                                if (field.type === 'Date') {
-                                    sql = sql + field.fieldId + " datetime,"
-                                }
+                                
+                                sql = sql + field.fieldId + " " + userTypeToDbType(field.type)+",";
 
-                                if (field.type === 'Text') {
-                                    sql = sql + field.fieldId + " text,"
-                                }
-                                if (field.type === 'Extend') {
-                                    sql = sql + field.fieldId + " varchar(255),"
-                                }
                             }
                             sql = sql.substring(0, sql.length - 1);
                             sql = sql + ")";

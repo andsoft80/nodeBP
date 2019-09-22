@@ -197,16 +197,16 @@ function dbTypeToUserType(dbType) {
     if (dbType.indexOf('text') > -1) {
         return "Text";
     }
-    
+
     return s;
 }
 
-function userTypeToDbType(usrType){
+function userTypeToDbType(usrType) {
     var s = "";
     if (usrType.indexOf('Integer') > -1) {
         return "bigint";
     }
-    if (usrType.indexOf('String') > -1 || dbType.indexOf('Extend')) {
+    if (usrType.indexOf('String') > -1 || usrType.indexOf('Extend')> -1) {
         return "varchar(255)";
     }
     if (usrType.indexOf('Numeric') > -1) {
@@ -218,8 +218,8 @@ function userTypeToDbType(usrType){
     if (usrType.indexOf('Text') > -1) {
         return "text";
     }
-    
-    return s;    
+
+    return s;
 }
 
 function buildObject(id) {
@@ -277,6 +277,10 @@ function buildObject(id) {
                                             if (fieldsDB[j].type === doc.fields[i].type || ((fieldsDB[j].type === 'String') && (doc.fields[i].type === 'Extend'))) {
                                                 fieldsDB[j].changeType = false;
                                             }
+                                            else{
+                                                fieldsDB[j].type = doc.fields[i].type;
+                                            }
+                                            
 
                                         }
                                     }
@@ -285,7 +289,33 @@ function buildObject(id) {
                                     }
                                 }
                                 console.log(JSON.stringify(fieldsDB));
-
+                                for (var i = 0; i < fieldsDB.length; i++) {
+                                    var field = fieldsDB[i];
+                                    if(field.delete){
+                                        var sql = "ALTER TABLE "+doc.name+" DROP COLUMN " + field.fieldId;
+                                        con.query(sql, function (err, result) {
+                                            if (err)
+                                                throw err;
+                                        });
+                                        continue;
+                                    }
+                                    if(field.changeType){
+                                        var sql = "ALTER TABLE "+doc.name+" MODIFY COLUMN " + field.fieldId+" "+userTypeToDbType(field.type);
+                                        con.query(sql, function (err, result) {
+                                            if (err)
+                                                throw err;
+                                        });
+                                    }  
+                                    if(field.changeType===undefined){
+                                        var sql = "ALTER TABLE "+doc.name+" ADD " + field.fieldId+" "+userTypeToDbType(field.type);
+                                        console.log(sql);
+                                        con.query(sql, function (err, result) {
+                                            if (err)
+                                                throw err;
+                                        });
+                                    }                                     
+                                    
+                                }
 
                             });
 
@@ -294,8 +324,8 @@ function buildObject(id) {
                             var sql = "CREATE TABLE " + doc.name + " (";
                             for (var i = 0; i < doc.fields.length; i++) {
                                 var field = doc.fields[i];
-                                
-                                sql = sql + field.fieldId + " " + userTypeToDbType(field.type)+",";
+
+                                sql = sql + field.fieldId + " " + userTypeToDbType(field.type) + ",";
 
                             }
                             sql = sql.substring(0, sql.length - 1);

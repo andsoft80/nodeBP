@@ -206,14 +206,14 @@ function userTypeToDbType(usrType) {
     if (usrType.indexOf('Integer') > -1) {
         return "bigint";
     }
-    if (usrType.indexOf('String') > -1 || usrType.indexOf('Extend')> -1) {
+    if (usrType.indexOf('String') > -1 || usrType.indexOf('Extend') > -1) {
         return "varchar(255)";
     }
     if (usrType.indexOf('Numeric') > -1) {
-        return "decimal";
+        return "decimal(20,6)";
     }
     if (usrType.indexOf('Date') > -1) {
-        return  "date";
+        return  "datetime";
     }
     if (usrType.indexOf('Text') > -1) {
         return "text";
@@ -222,8 +222,79 @@ function userTypeToDbType(usrType) {
     return s;
 }
 
-function buildObject(id) {
+function buildField(field, con, table, cb) {
+    //console.log('start '+field.fieldId);
+    var res = {};
+
+    if (field.delete) {
+        var sql = "ALTER TABLE " + table + " DROP COLUMN " + field.fieldId;
+        con.query(sql, function (err, result) {
+            if (err) {
+                res.status = 500;
+                res.text = err;
+                res.fieldId = field.fieldId;
+                cb(res);
+
+            } else {
+                res.status = 200;
+                res.text = "Ok";
+                res.fieldId = field.fieldId;
+                cb(res);
+            }
+        });
+        return;
+    }
+    if (field.changeType) {
+        //console.log('change');
+        var sql = "ALTER TABLE " + table + " MODIFY COLUMN " + field.fieldId + " " + userTypeToDbType(field.type);
+        con.query(sql, function (err, result) {
+            if (err) {
+
+                res.status = 500;
+                res.text = err;
+                res.fieldId = field.fieldId;
+                cb(res);
+
+
+            } else {
+                res.status = 200;
+                res.text = "Ok";
+                res.fieldId = field.fieldId;
+                cb(res);
+            }
+        });
+    }
+    if (field.changeType === undefined) {
+        var sql = "ALTER TABLE " + table + " ADD " + field.fieldId + " " + userTypeToDbType(field.type);
+        console.log(sql);
+        con.query(sql, function (err, result) {
+            if (err) {
+                res.status = 500;
+                res.text = err;
+                res.fieldId = field.fieldId;
+                cb(res);
+
+            } else {
+                res.status = 200;
+                res.text = "Ok";
+                res.fieldId = field.fieldId;
+                cb(res);
+            }
+        });
+    }
+    if (field.changeType === false && field.delete === false) {
+        res.status = 200;
+        res.text = "Ok";
+        res.fieldId = field.fieldId;
+        cb(res);
+    }
+
+}
+
+function buildObject(id, cb) {
 //-->db///////////////////////
+    var res = {};
+
     var con = mysql.createConnection({
         host: mySqlServerHost,
         user: 'root',
@@ -233,12 +304,17 @@ function buildObject(id) {
 
     });
     con.connect(function (err) {
-        if (err)
-            throw err;
+        if (err) {
+            res.status = 500;
+            res.text = err;
+            cb(res);
+        }
+
+
 
         console.log('Connected to MySQL...');
-    });
-    if (con) {
+
+
 
         var query = MetaData.findById(id);
         query.exec(function (err, doc) {
@@ -247,13 +323,25 @@ function buildObject(id) {
                     //console.log(doc.fields.length);
                     var sqlStr = "show tables like " + "'" + doc.name + "'";
                     con.query(sqlStr, function (err, result) {
-                        if (err)
-                            throw err;
+
+                        if (err) {
+                            res.status = 500;
+                            res.text = err;
+                            cb(res);
+
+                        }
+                        ;
+
                         if (result.length > 0) {//table exist
                             var sql = "SHOW COLUMNS FROM " + doc.name;
                             con.query(sql, function (err, result) {
-                                if (err)
-                                    throw err;
+                                if (err) {
+                                    res.status = 500;
+                                    res.text = err;
+                                    cb(res);
+
+                                }
+                                ;
 
                                 //console.log(JSON.stringify(result));
                                 var fieldsDB = [];
@@ -276,11 +364,11 @@ function buildObject(id) {
                                             fieldsDB[j].delete = false;
                                             if (fieldsDB[j].type === doc.fields[i].type || ((fieldsDB[j].type === 'String') && (doc.fields[i].type === 'Extend'))) {
                                                 fieldsDB[j].changeType = false;
-                                            }
-                                            else{
+                                                console.log(fieldsDB[j].type);
+                                            } else {
                                                 fieldsDB[j].type = doc.fields[i].type;
                                             }
-                                            
+
 
                                         }
                                     }
@@ -289,32 +377,35 @@ function buildObject(id) {
                                     }
                                 }
                                 console.log(JSON.stringify(fieldsDB));
+                                var errors = [];
+                                var cnt = 0;
+
                                 for (var i = 0; i < fieldsDB.length; i++) {
                                     var field = fieldsDB[i];
-                                    if(field.delete){
-                                        var sql = "ALTER TABLE "+doc.name+" DROP COLUMN " + field.fieldId;
-                                        con.query(sql, function (err, result) {
-                                            if (err)
-                                                throw err;
-                                        });
-                                        continue;
-                                    }
-                                    if(field.changeType){
-                                        var sql = "ALTER TABLE "+doc.name+" MODIFY COLUMN " + field.fieldId+" "+userTypeToDbType(field.type);
-                                        con.query(sql, function (err, result) {
-                                            if (err)
-                                                throw err;
-                                        });
-                                    }  
-                                    if(field.changeType===undefined){
-                                        var sql = "ALTER TABLE "+doc.name+" ADD " + field.fieldId+" "+userTypeToDbType(field.type);
-                                        console.log(sql);
-                                        con.query(sql, function (err, result) {
-                                            if (err)
-                                                throw err;
-                                        });
-                                    }                                     
-                                    
+
+                                    buildField(field, con, doc.name, function (data) {
+                                        cnt++;
+                                        if (data.status === 500) {
+                                            errors.push(data);
+                                            console.log('error field ' + data.fieldId);
+                                        }
+                                       
+                                        if (cnt === fieldsDB.length) {
+                                            console.log(JSON.stringify(errors));
+                                            if (errors.length > 0) {
+                                                res.status = 500;
+                                                res.text = errors;
+                                                cb(res);
+                                            } else {//Заглушка пока для DB
+                                                res.status = 200;
+                                                res.text = "DB builds";
+                                                cb(res);
+
+                                            }
+                                        }
+                                    });
+
+
                                 }
 
                             });
@@ -331,40 +422,52 @@ function buildObject(id) {
                             sql = sql.substring(0, sql.length - 1);
                             sql = sql + ")";
                             con.query(sql, function (err, result) {
-                                if (err)
-                                    throw err;
+                                if (err) {
+                                    res.status = 500;
+                                    res.text = err;
+                                    cb(res);
+
+                                }
+                                ;
+                                res.status = 200;
+                                res.text = 'Table created!';
+                                cb(res);
                             });
                         }
 
                     });
                 }
             } else {
-                return 500;
+
+                res.status = 500;
+                res.text = "Object not found!";
+                cb(res);
+
+
             }
         });
-        return 200;
-    } else {
-        console.log('Connection to MySQL failed!!!');
-        return 500;
-    }
 
 
 
+    });
 
-    con.end();
+    //cb(res);
+
+    //con.end();
 //<--db/////////////////////////
 
 }
 app.post('/build', function (req, res) {
-    var result = {};
+
     var objectData = (req.body);
     if (req.body.id) {
-        if (buildObject(objectData.id) === 200) {
-            res.send({"status": 200});
-        } else {
-            res.send({"status": 500});
-        }
-        ;
+
+        buildObject(objectData.id, function (data) {
+
+            res.send(data);
+            //console.log(JSON.stringify(data))
+        });
+
     } else {
 
     }

@@ -222,10 +222,20 @@ function userTypeToDbType(usrType) {
     return s;
 }
 
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 function buildField(field, con, table, cb) {
     //console.log('start '+field.fieldId);
     var res = {};
-
+    var autoIncrement = '';
+//    if(field.autoIncrement){
+//        autoIncrement = "AUTO_INCREMENT";
+//    }
     if (field.delete) {
         var sql = "ALTER TABLE " + table + " DROP COLUMN " + field.fieldId;
         con.query(sql, function (err, result) {
@@ -246,7 +256,7 @@ function buildField(field, con, table, cb) {
     }
     if (field.changeType) {
         //console.log('change');
-        var sql = "ALTER TABLE " + table + " MODIFY COLUMN " + field.fieldId + " " + userTypeToDbType(field.type);
+        var sql = "ALTER TABLE " + table + " MODIFY COLUMN " + field.fieldId + " " + userTypeToDbType(field.type);//+" "+autoIncrement;
         con.query(sql, function (err, result) {
             if (err) {
 
@@ -265,7 +275,7 @@ function buildField(field, con, table, cb) {
         });
     }
     if (field.changeType === undefined) {
-        var sql = "ALTER TABLE " + table + " ADD " + field.fieldId + " " + userTypeToDbType(field.type);
+        var sql = "ALTER TABLE " + table + " ADD " + field.fieldId + " " + userTypeToDbType(field.type);//+" "+autoIncrement;
         console.log(sql);
         con.query(sql, function (err, result) {
             if (err) {
@@ -319,7 +329,7 @@ function buildObject(id, cb) {
         var query = MetaData.findById(id);
         query.exec(function (err, doc) {
             if (doc) {
-                if (doc.fields.length > 0) {
+                //if (doc.fields.length > 0) {
                     //console.log(doc.fields.length);
                     var sqlStr = "show tables like " + "'" + doc.name + "'";
                     con.query(sqlStr, function (err, result) {
@@ -343,37 +353,46 @@ function buildObject(id, cb) {
                                 }
                                 ;
 
-                                //console.log(JSON.stringify(result));
+                                console.log(JSON.stringify(result));
                                 var fieldsDB = [];
                                 for (var i = 0; i < result.length; i++) {
                                     var fieldDB = {};
                                     fieldDB.fieldId = result[i].Field;
-                                    fieldDB.delete = true;
-                                    fieldDB.changeType = true;
+                                    if (fieldDB.fieldId === "_id") {
+                                        fieldDB.delete = false;
+                                        fieldDB.changeType = false;
+                                    } else {
+                                        fieldDB.delete = true;
+                                        fieldDB.changeType = true;
+                                    }
                                     //fieldDB.Null = result[i].Null;
                                     fieldDB.type = dbTypeToUserType(result[i].Type)
                                     fieldsDB.push(fieldDB);
 
                                 }
+
                                 var fdbl = fieldsDB.length;
-                                for (var i = 0; i < doc.fields.length; i++) {
-                                    var push = true;
-                                    for (var j = 0; j < fdbl; j++) {
-                                        if (doc.fields[i].fieldId === fieldsDB[j].fieldId) {
-                                            push = false;
-                                            fieldsDB[j].delete = false;
-                                            if (fieldsDB[j].type === doc.fields[i].type || ((fieldsDB[j].type === 'String') && (doc.fields[i].type === 'Extend'))) {
-                                                fieldsDB[j].changeType = false;
-                                                console.log(fieldsDB[j].type);
-                                            } else {
-                                                fieldsDB[j].type = doc.fields[i].type;
+                                if (doc.fields.length){
+                                    for (var i = 0; i < doc.fields.length; i++) {
+                                        var push = true;
+                                        for (var j = 0; j < fdbl; j++) {
+                                            if (doc.fields[i].fieldId === fieldsDB[j].fieldId) {
+                                                push = false;
+                                                fieldsDB[j].delete = false;
+                                                if (fieldsDB[j].type === doc.fields[i].type || ((fieldsDB[j].type === 'String') && (doc.fields[i].type === 'Extend'))) {
+                                                    fieldsDB[j].changeType = false;
+                                                    console.log(fieldsDB[j].type);
+                                                } else {
+                                                    fieldsDB[j].type = doc.fields[i].type;
+                                                    fieldsDB[j].autoIncrement = doc.fields[i].autoIncrement;
+                                                }
+                                                
+
                                             }
-
-
                                         }
-                                    }
-                                    if (push) {
-                                        fieldsDB.push(doc.fields[i]);
+                                        if (push) {
+                                            fieldsDB.push(doc.fields[i]);
+                                        }
                                     }
                                 }
                                 console.log(JSON.stringify(fieldsDB));
@@ -389,14 +408,14 @@ function buildObject(id, cb) {
                                             errors.push(data);
                                             console.log('error field ' + data.fieldId);
                                         }
-                                       
+
                                         if (cnt === fieldsDB.length) {
                                             console.log(JSON.stringify(errors));
                                             if (errors.length > 0) {
                                                 res.status = 500;
                                                 res.text = errors;
                                                 cb(res);
-                                            } else {//Заглушка пока для DB
+                                            } else {//stub for DB process
                                                 res.status = 200;
                                                 res.text = "DB builds";
                                                 cb(res);
@@ -412,6 +431,8 @@ function buildObject(id, cb) {
 
                         } else {//table not exist
                             //var sql = "CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))";
+
+
                             var sql = "CREATE TABLE " + doc.name + " (";
                             for (var i = 0; i < doc.fields.length; i++) {
                                 var field = doc.fields[i];
@@ -420,7 +441,7 @@ function buildObject(id, cb) {
 
                             }
                             sql = sql.substring(0, sql.length - 1);
-                            sql = sql + ")";
+                            sql = sql + ", _id varchar(255) not null, PRIMARY KEY (_id))";
                             con.query(sql, function (err, result) {
                                 if (err) {
                                     res.status = 500;
@@ -436,7 +457,7 @@ function buildObject(id, cb) {
                         }
 
                     });
-                }
+                //}
             } else {
 
                 res.status = 500;

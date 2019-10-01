@@ -29,6 +29,10 @@ and open the template in the editor.
             .oa{
                 overflow: auto;
             } 
+            .st{
+                /*font-weight: bold;*/
+                background: silver;
+            }
         </style>
         <style>
             .ht .dhx_input {
@@ -563,11 +567,14 @@ and open the template in the editor.
             function editField(data, list, field) {
 
                 var rows = [
+
                     {
+                        //cellCss: "st",
                         type: "text",
-                        //label: "text",
+                        //label: "Create new field",
                         //labelInline: true,
                         value: "Create new field"
+
                     },
                     {
                         id: "fieldId",
@@ -621,6 +628,12 @@ and open the template in the editor.
                                 content: "Extend Data Type(EDT)"
                             }
                         ]
+                    },
+                    {
+                        id: "autoIncrement",
+                        type: "checkbox",
+                        label: "Auto Increment",
+                        labelInline: true
                     },
                     {
                         id: "objectType",
@@ -733,11 +746,20 @@ and open the template in the editor.
                                 alert("Input all EDT fields!");
 
                             } else {
+                                if (newField.fieldId === '_id') {
+                                    alert("_id reserved! _id field will add as default with UID type and primary index...");
+                                    return;
+                                }
                                 var objectModel = data;
                                 newField.fieldId = form.getValue().fieldId;
                                 newField.alias = form.getValue().alias;
                                 newField.type = form.getValue().type;
                                 newField.helpText = form.getValue().helpText;
+                                if (form.getValue().autoIncrement && newField.type !== "Integer") {
+                                    alert("Auto Increment only for Integer type!");
+                                    return;
+                                }
+                                newField.autoIncrement = form.getValue().autoIncrement;
                                 if (form.getValue().type === "Extend") {
                                     newField.edtType.objectType = form.getValue().objectType;
                                     newField.edtType.objectName = form2.getValue().objectName[0];
@@ -856,6 +878,14 @@ and open the template in the editor.
                         return val;
                     }
                 });
+                list.events.on("Click", function (id, e) {
+                    listForm.selection.remove(listForm.selection.getId());
+                });
+
+                listForm.events.on("Click", function (id, e) {
+                    list.selection.remove(list.selection.getId());
+                });
+
                 loadFielsdList(list, data._id);
                 loadFielsdListForm(listForm, data._id);
 
@@ -895,12 +925,14 @@ and open the template in the editor.
                     if (_id === 'delete') {
                         if (confirm("Delete field?")) {
                             var selid = list.selection.getId();
+                            //var selid = list.getFocusItem();
                             if (selid) {
                                 list.data.remove(selid);
                                 saveFields(data._id, list);
                             }
 
                             var selid = listForm.selection.getId();
+                            //var selid = listForm.getFocusItem();
                             if (selid) {
                                 listForm.data.remove(selid);
                                 saveFieldsListForm(data._id, listForm);

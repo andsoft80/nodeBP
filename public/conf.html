@@ -16,7 +16,7 @@ and open the template in the editor.
         <script src="global.js" type="text/javascript"></script>
         <!--        <script src="codebase/dhtmlx.js" type="text/javascript"></script>
                 <link href="codebase/dhtmlx.css" rel="stylesheet" type="text/css"/>-->
-
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css">
         <style>
             html, body {height:100%;}
             .dhx_sample-container {
@@ -289,69 +289,7 @@ and open the template in the editor.
             });
 
 //<--Sidebar ToolBar/////////////////////////////////////////////////////////////
-            function saveObject(objectModel, callform) {
-                $.ajax({
-                    type: "post",
-                    //async: false,
-                    url: "/metadata",
-                    //headers: {"Access-Control-Allow-Origin": "*"},
-                    data: objectModel,
-                    success: function (data) {
-                        if (data.status === 200) {
-                            alert('Saved!');
-                            callform.destructor();
-                            loadTree(data.doc._id);
-                        } else {
-                            alert(data);
-                        }
 
-                    }
-                });
-            }
-            ;
-            function getObject(id, promise) {
-
-                $.ajax({
-                    type: "get",
-                    async: false,
-                    url: "/metadata/" + id,
-                    //headers: {"Access-Control-Allow-Origin": "*"},
-
-                    success: function (data) {
-                        promise(data);
-
-
-                    }
-                });
-
-            }
-            ;
-            function updateObject(objectModel, callform, promise) {
-                objectModel.__v++;
-                objectModel.changed = true;
-                $.ajax({
-                    type: "put",
-                    //async: false,
-                    url: "/metadata",
-                    //headers: {"Access-Control-Allow-Origin": "*"},
-                    data: JSON.stringify(objectModel),
-                    //data: objectModel,
-//                    dataType: 'json',
-                    contentType: 'application/json',
-                    success: function (data) {
-                        promise(data);
-                        if (data.status === 200) {
-                            //alert('Updated!');
-                            callform.destructor();
-                        } else {
-                            alert(data);
-                        }
-
-
-                    }
-                });
-            }
-            ;
 
 //-->Sidebar Tree/////////////////////////////////////////////////////////////
             function loadTree(id) {
@@ -960,6 +898,8 @@ and open the template in the editor.
 
                             }
                         });
+
+                        showListForm(data._id, false);
                     }
 
                 });
@@ -997,6 +937,7 @@ and open the template in the editor.
 
             });
 //<--TabBar Workplace//////////////////////////////////////////////////////////  
+
         </script>
 
 

@@ -9,7 +9,7 @@ mongoose.connect('mongodb://localhost/bp', {useNewUrlParser: true}, function (er
     if (err)
         throw err;
 
-    console.log('Successfully connected');
+    console.log('Successfully connected to Mongo');
 
 });
 
@@ -28,21 +28,7 @@ app.get('/', function (req, res) {
 
 });
 
-//
-//var userSchema = mongoose.Schema({
-//    _id: mongoose.Schema.Types.ObjectId,
-//    firstName: String,
-//    lastName: String
-//});
-//
-//var User = mongoose.model('User', userSchema);
-//var ands = new User ({
-//    
-//    _id: new mongoose.Types.ObjectId(),
-//    firstName : 'Andrey',
-//    lastName : 'Saulin'
-//});
-//ands.save();
+
 
 //ObjectTree
 objectTypes = {
@@ -112,21 +98,7 @@ var objectSchema = mongoose.Schema({
 });
 
 var MetaData = mongoose.model('MetaData', objectSchema);
-//docInvoice = new MetaData({
-//    _id: new mongoose.Types.ObjectId(),
-//    objectType: objectTypes.doc,
-//    name: 'Расходная накладная',
-//    forms:[
-//        {
-//            formId: 'list',
-//            structure: {
-//                input:'mama'
-//            }
-//        }
-//    ]
-//    
-//});
-//docInvoice.save();
+
 app.post('/metadata', function (req, res) {
     var objectData = req.body;
     if (!objectData._id) {
@@ -180,6 +152,11 @@ app.put('/metadata', function (req, res) {
 
 
 });
+
+//End ObjectTree
+
+
+
 function dbTypeToUserType(dbType) {
     var s = "";
     if (dbType.indexOf('bigint') > -1) {
@@ -232,7 +209,7 @@ function uuidv4() {
 function buildField(field, con, table, cb) {
     //console.log('start '+field.fieldId);
     var res = {};
-    var autoIncrement = '';
+    //var autoIncrement = '';
 //    if(field.autoIncrement){
 //        autoIncrement = "AUTO_INCREMENT";
 //    }
@@ -317,6 +294,7 @@ function buildObject(id, cb) {
         if (err) {
             res.status = 500;
             res.text = err;
+            
             cb(res);
         }
 
@@ -337,6 +315,7 @@ function buildObject(id, cb) {
                         if (err) {
                             res.status = 500;
                             res.text = err;
+                            con.end(); 
                             cb(res);
 
                         }
@@ -348,6 +327,7 @@ function buildObject(id, cb) {
                                 if (err) {
                                     res.status = 500;
                                     res.text = err;
+                                    con.end(); 
                                     cb(res);
 
                                 }
@@ -414,14 +394,17 @@ function buildObject(id, cb) {
                                             if (errors.length > 0) {
                                                 res.status = 500;
                                                 res.text = errors;
+                                                con.end(); 
                                                 cb(res);
                                             } else {//stub for DB process
                                                 res.status = 200;
                                                 res.text = "DB builds";
+                                                con.end(); 
                                                 cb(res);
 
                                             }
                                         }
+                                        
                                     });
 
 
@@ -446,12 +429,14 @@ function buildObject(id, cb) {
                                 if (err) {
                                     res.status = 500;
                                     res.text = err;
+                                    con.end(); 
                                     cb(res);
 
                                 }
                                 ;
                                 res.status = 200;
                                 res.text = 'Table created!';
+                                con.end(); 
                                 cb(res);
                             });
                         }
@@ -462,19 +447,20 @@ function buildObject(id, cb) {
 
                 res.status = 500;
                 res.text = "Object not found!";
+                con.end(); 
                 cb(res);
 
 
             }
         });
 
-
+        
 
     });
 
     //cb(res);
 
-    //con.end();
+   
 //<--db/////////////////////////
 
 }
@@ -496,5 +482,152 @@ app.post('/build', function (req, res) {
 
 });
 
+/////////////universal sql api//////////////////////////////////
+app.post('/table/:tableName/action/:action', function (req, res) {
+    res.set({
+        'Content-Type': 'text/plain',
+        'charset': 'utf-8'
+    });
 
-//End ObjectTree
+
+    var con = mysql.createConnection({
+        host: mySqlServerHost,
+        user: 'root',
+        password: 'root',
+        database: 'bp'
+
+
+    });
+    con.connect(function (err) {
+        if (err)
+            throw err;
+
+
+    });
+
+    var tableName = req.params.tableName;
+    var action = req.params.action;
+
+    if (action === 'post') {
+        sqlStr = "INSERT INTO " + tableName + " (";
+        for (i = 0; i < Object.keys(req.body).length; i++) {
+            if (Object.keys(req.body)[i] == 'an') {
+                continue;
+            }
+            sqlStr = sqlStr + Object.keys(req.body)[i] + ",";
+        }
+        sqlStr = sqlStr.substring(0, sqlStr.length - 1);
+        sqlStr = sqlStr + ") VALUES (";
+        for (i = 0; i < Object.keys(req.body).length; i++) {
+            if (Object.keys(req.body)[i] == 'an') {
+                continue;
+            }
+            sqlStr = sqlStr + "'" + req.body[Object.keys(req.body)[i]] + "',";
+        }
+        sqlStr = sqlStr.substring(0, sqlStr.length - 1);
+        sqlStr = sqlStr + ")";
+
+        con.query(sqlStr, function (err, result) {
+            if (err)
+                res.end(JSON.stringify(err));
+            res.end(JSON.stringify(result));
+
+        });
+    }
+    if (action === 'put') {
+        var id = req.body.id;
+        sqlStr = "update " + tableName + " set ";
+        for (i = 0; i < Object.keys(req.body).length; i++) {
+            if (Object.keys(req.body)[i] === 'id') {
+                continue;
+            }
+            if (Object.keys(req.body)[i] == 'an') {
+                continue;
+            }
+            sqlStr = sqlStr + Object.keys(req.body)[i] + "='" + req.body[Object.keys(req.body)[i]] + "',"
+        }
+        sqlStr = sqlStr.substring(0, sqlStr.length - 1);
+        sqlStr = sqlStr + "where id = " + id;
+
+        con.query(sqlStr, function (err, result) {
+            if (err)
+                res.end(JSON.stringify(err));
+            res.end(JSON.stringify(result));
+
+        });
+    }
+
+    if (action === 'delete') {
+
+        var id = req.body.id;
+
+        sqlStr = "delete from " + tableName + " where id =  " + id;
+
+        con.query(sqlStr, function (err, result) {
+            if (err)
+                res.end(JSON.stringify(err));
+            res.end(JSON.stringify(result));
+
+        });
+
+
+    }
+    if (action === 'get') {
+
+        var id = req.body.id;
+        var condition = req.body.condition;
+
+        var str = '';
+        if (condition) {
+
+            str = "where " + condition[0].field + " = '" + condition[0].value + "'";
+            for (i = 1; i < condition.length; i++) {
+                str = str + ' and ' + condition[i].field + " = '" + condition[i].value + "'";
+            }
+        }
+        if (id) {
+            sqlStr = "select * from " + tableName + " where id =  " + id + " " + str;
+        } else {
+            sqlStr = "select * from " + tableName + " " + str;
+        }
+
+
+        con.query(sqlStr, function (err, result) {
+            if (err)
+                res.end(JSON.stringify(err));
+            res.end(JSON.stringify(result));
+            //res.end(result);
+            //console.log(JSON.stringify(result));
+
+        });
+
+
+    }
+    if (action === 'get_columns') {
+
+
+        sqlStr = "DESC " + tableName;
+        con.query(sqlStr, function (err, result) {
+            if (err)
+                res.end(JSON.stringify(err));
+
+
+
+            //console.log(JSON.stringify(columns));
+            res.end(JSON.stringify(result));
+
+        });
+
+
+    }
+    con.end(function (err) {
+        if (err) {
+            return console.log("Ошибка: " + err.message);
+        }
+    });
+
+});
+
+//////////////////////////////////////////////
+
+

@@ -123,7 +123,13 @@ function showListForm(id, mode, cb) {
 
         toolbar.events.on("Click", function (id, e) {
             if (id === "add") {
-                var inlineMode = object.inlineMode;
+                var formEditMode = object.formEditMode;
+                if(formEditMode){
+                    
+                }
+                else{
+                    grid.data.add({});
+                }
 
             }
             if (id === "refresh") {

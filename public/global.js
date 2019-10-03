@@ -3,6 +3,8 @@ var editCell = {};
 var rh = 23;
 var hh = 23;
 function showListForm(id, mode, cb) {
+    var needSave = false;
+    var selectItem = null;
     getObject(id, function (object) {
         //alert(object.name);
         var dhxWindow = new dhx.Window({
@@ -88,6 +90,17 @@ function showListForm(id, mode, cb) {
             height: 300
         });
 
+        grid.events.on("CellClick", function (row, column, e) {
+            selectItem = row;
+        });
+
+        grid.events.on("CellDblClick", function (row, column, e) {
+            //alert(row.id+" "+column.id);
+            grid.edit(row.id, column.id);
+        });
+        grid.events.on("AfterEditEnd", function (value, row, column) {
+            selectItem = row;
+        });
         $.ajax({
             type: "post",
             //async: false,
@@ -96,7 +109,11 @@ function showListForm(id, mode, cb) {
 
             success: function (data) {
                 grid.data.parse(JSON.parse(data));
+                grid.data.sort({
+                    by: "id",
+                    dir: "asc"
 
+                });
             }
         });
 
@@ -123,12 +140,59 @@ function showListForm(id, mode, cb) {
 
         toolbar.events.on("Click", function (id, e) {
             if (id === "add") {
-                var formEditMode = object.formEditMode;
-                if(formEditMode){
-                    
+                if (needSave) {
+                    alert('Save prefer record!');
+                    return;
                 }
-                else{
-                    grid.data.add({});
+                var formEditMode = object.formEditMode;
+                if (formEditMode) {
+
+                } else {
+                    var parcel = {table: '', fields: ''};
+
+                    parcel.table = object.name;
+                    for (var i = 0; i < object.listForm.length; i++) {
+                        if (object.listForm[i].autoIncrement) {
+                            parcel.fields = parcel.fields + object.listForm[i].fieldId + ",";
+                        }
+                    }
+                    parcel.fields = parcel.fields.substring(0, parcel.fields.length - 1);
+                    //alert(JSON.stringify(parcel));
+
+                    if (parcel.fields.length > 0) {
+                        $.ajax({
+                            type: "post",
+                            //async: false,
+                            url: "/getMax",
+                            data: parcel,
+                            //headers: {"Access-Control-Allow-Origin": "*"},
+
+                            success: function (data) {
+
+                                var maxVals = JSON.parse(data);
+                                var maxObj = {};
+                                for (var i = 0; i < maxVals.length; i++) {
+                                    maxObj[Object.keys(maxVals[i])[0]] = maxVals[i][Object.keys(maxVals[i])[0]];
+                                }
+                                //alert(JSON.stringify(maxObj));
+                                var newItem = {};
+                                for (var i = 0; i < object.listForm.length; i++) {
+                                    newItem[object.listForm[i].fieldId] = "";
+                                    if (object.listForm[i].autoIncrement) {
+                                        newItem[object.listForm[i].fieldId] = maxObj['max(' + object.listForm[i].fieldId + ')'] + 1;
+                                    }
+                                }
+                                //alert(JSON.stringify(newItem));
+
+
+                                grid.data.add(newItem);
+                                needSave = true;
+
+                            }
+                        });
+                    }
+
+
                 }
 
             }
@@ -141,9 +205,70 @@ function showListForm(id, mode, cb) {
 
                     success: function (data) {
                         grid.data.parse(JSON.parse(data));
-
+                        needSave = false;
                     }
                 });
+            }
+            if (id === "save") {
+
+                if (selectItem._id) {
+                    $.ajax({
+                        type: "post",
+                        //async: false,
+                        data: selectItem,
+                        url: "/table/" + object.name + "/action/put",
+                        //headers: {"Access-Control-Allow-Origin": "*"},
+
+                        success: function (data) {
+                            $.ajax({
+                                type: "post",
+                                //async: false,
+                                url: "/table/" + object.name + "/action/get",
+                                //headers: {"Access-Control-Allow-Origin": "*"},
+
+                                success: function (data) {
+                                    grid.data.parse(JSON.parse(data));
+                                    grid.data.sort({
+                                        by: "id",
+                                        dir: "asc"
+
+                                    });
+                                    needSave = false;
+                                }
+                            });
+
+                        }
+                    });
+                } else {
+                    $.ajax({
+                        type: "post",
+                        //async: false,
+                        data: selectItem,
+                        url: "/table/" + object.name + "/action/post",
+                        //headers: {"Access-Control-Allow-Origin": "*"},
+
+                        success: function (data) {
+                            $.ajax({
+                                type: "post",
+                                //async: false,
+                                url: "/table/" + object.name + "/action/get",
+                                //headers: {"Access-Control-Allow-Origin": "*"},
+
+                                success: function (data) {
+                                    grid.data.parse(JSON.parse(data));
+                                    grid.data.sort({
+                                        by: "id",
+                                        dir: "asc"
+
+                                    });
+                                    needSave = false;
+                                }
+                            });
+
+                        }
+                    });
+                }
+
             }
         });
 

@@ -27,6 +27,7 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/public/conf.html');
 
 });
+//var ping = false;
 function getMySQLConnection() {
     var con = mysql.createConnection({
         host: mySqlServerHost,
@@ -36,6 +37,12 @@ function getMySQLConnection() {
 
 
     });
+//    if (!ping) {
+//        setInterval(function () {
+//            con.query('SELECT 1');
+//        }, 5000);
+//        ping = true;
+//    }
     return con;
 }
 ;
@@ -321,7 +328,7 @@ function buildObject(id, cb) {
                     }
                     if (!haveId) {
                         res.status = 500;
-                        res.text = "List Form of "+doc.name+" have not id field!";
+                        res.text = "List Form of " + doc.name + " have not id field!";
                         con.end();
                         cb(res);
                     }
@@ -545,8 +552,10 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 //    });
     var con = getMySQLConnection();
     con.connect(function (err) {
-        if (err)
+        if (err){
+            console.log(JSON.stringify(err));
             res.end(JSON.stringify(err));
+        }
 
 
     });
@@ -641,7 +650,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             sqlStr = "select * from " + tableName + " " + str;
         }
 
-
+        //console.log(con);
         con.query(sqlStr, function (err, result) {
             if (err)
                 res.end(JSON.stringify(err));
@@ -670,7 +679,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 
 
     }
-    con.end(function (err) {
+    con.destroy(function (err) {
         if (err) {
             return console.log("Ошибка: " + err.message);
         }

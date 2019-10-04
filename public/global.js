@@ -12,9 +12,15 @@ function showListForm(id, mode, cb) {
             modal: mode,
             resizable: true,
             movable: true,
-            minHeight: 300,
+            minHeight: 500,
             minWidth: 500,
             closable: true
+        });
+        var layout = new dhx.Layout(null, {
+            rows: [
+                {id: "toolBar"},
+                {id: "content"}
+            ]
         });
         if (!mode) {
             var toolbar = new dhx.Toolbar(null);
@@ -57,15 +63,211 @@ function showListForm(id, mode, cb) {
                 }
             ];
             toolbar.data.parse(data);
-        }
-        var layout = new dhx.Layout(null, {
-            rows: [
-                {id: "toolBar"},
-                {id: "content"}
-            ]
-        });
-        layout.cell("toolBar").attach(toolbar);
 
+
+            layout.cell("toolBar").attach(toolbar);
+            toolbar.events.on("Click", function (id, e) {
+                if (id === "add") {
+                    if (needSave) {
+                        alert('Save prefer record!');
+                        return;
+                    }
+                    var formEditMode = object.formEditMode;
+                    if (formEditMode) {
+
+                    } else {
+                        var parcel = {table: '', fields: ''};
+
+                        parcel.table = object.name;
+                        for (var i = 0; i < object.listForm.length; i++) {
+                            if (object.listForm[i].autoIncrement) {
+                                parcel.fields = parcel.fields + object.listForm[i].fieldId + ",";
+                            }
+                        }
+                        parcel.fields = parcel.fields.substring(0, parcel.fields.length - 1);
+                        //alert(JSON.stringify(parcel));
+
+                        if (parcel.fields.length > 0) {
+                            $.ajax({
+                                type: "post",
+                                //async: false,
+                                url: "/getMax",
+                                data: parcel,
+                                //headers: {"Access-Control-Allow-Origin": "*"},
+
+                                success: function (data) {
+
+                                    var maxVals = JSON.parse(data);
+                                    var maxObj = {};
+                                    for (var i = 0; i < maxVals.length; i++) {
+                                        maxObj[Object.keys(maxVals[i])[0]] = maxVals[i][Object.keys(maxVals[i])[0]];
+                                    }
+                                    //alert(JSON.stringify(maxObj));
+                                    var newItem = {};
+                                    for (var i = 0; i < object.listForm.length; i++) {
+                                        newItem[object.listForm[i].fieldId] = "";
+                                        if (object.listForm[i].autoIncrement) {
+                                            newItem[object.listForm[i].fieldId] = maxObj['max(' + object.listForm[i].fieldId + ')'] + 1;
+                                        }
+                                    }
+                                    //alert(JSON.stringify(newItem));
+
+
+                                    grid.data.add(newItem);
+                                    //grid.scrollTo(newItem.id,"id");
+                                    needSave = true;
+
+                                }
+                            });
+                        }
+
+
+                    }
+
+                }
+                if (id === "edit") {
+                    var formEditMode = object.formEditMode;
+                    if (formEditMode) {
+
+                    } else {
+                        alert("Inline editing for this object!");
+                    }
+                }
+                if (id === "delete") {
+                    if (selectItem === null) {
+                        alert("Select record!");
+                        return;
+                    } else {
+                        if (confirm("Delete record?")) {
+                            if (selectItem._id) {
+
+                                $.ajax({
+                                    type: "post",
+                                    //async: false,
+                                    url: "/table/" + object.name + "/action/delete",
+                                    //headers: {"Access-Control-Allow-Origin": "*"},
+                                    data: selectItem,
+                                    success: function (data) {
+                                        if (data.indexOf('errno') > -1) {
+                                            alert(data);
+                                            return;
+                                        }
+
+                                        $.ajax({
+                                            type: "post",
+                                            //async: false,
+                                            url: "/table/" + object.name + "/action/get",
+                                            //headers: {"Access-Control-Allow-Origin": "*"},
+
+                                            success: function (data) {
+                                                grid.data.parse(JSON.parse(data));
+                                                grid.data.sort({
+                                                    by: "id",
+                                                    dir: "asc"
+
+                                                });
+
+                                            }
+                                        });
+                                    }
+                                });
+
+                            }
+                            grid.data.remove(selectItem.id);
+                            needSave = false;
+                        }
+                    }
+                }
+                if (id === "refresh") {
+                    $.ajax({
+                        type: "post",
+                        //async: false,
+                        url: "/table/" + object.name + "/action/get",
+                        //headers: {"Access-Control-Allow-Origin": "*"},
+
+                        success: function (data) {
+                            grid.data.parse(JSON.parse(data));
+                            grid.data.sort({
+                                by: "id",
+                                dir: "asc"
+
+                            });
+                            needSave = false;
+                        }
+                    });
+                }
+                if (id === "save") {
+
+                    if (selectItem._id) {
+                        $.ajax({
+                            type: "post",
+                            //async: false,
+                            data: selectItem,
+                            url: "/table/" + object.name + "/action/put",
+                            //headers: {"Access-Control-Allow-Origin": "*"},
+
+                            success: function (data) {
+                                if (data.indexOf('errno') > -1) {
+                                    alert(data);
+                                    return;
+                                }
+
+                                $.ajax({
+                                    type: "post",
+                                    //async: false,
+                                    url: "/table/" + object.name + "/action/get",
+                                    //headers: {"Access-Control-Allow-Origin": "*"},
+
+                                    success: function (data) {
+                                        grid.data.parse(JSON.parse(data));
+                                        grid.data.sort({
+                                            by: "id",
+                                            dir: "asc"
+
+                                        });
+                                        needSave = false;
+                                    }
+                                });
+
+                            }
+                        });
+                    } else {
+                        $.ajax({
+                            type: "post",
+                            //async: false,
+                            data: selectItem,
+                            url: "/table/" + object.name + "/action/post",
+                            //headers: {"Access-Control-Allow-Origin": "*"},
+
+                            success: function (data) {
+                                if (data.indexOf('errno') > -1) {
+                                    alert(data);
+                                    return;
+                                }
+                                $.ajax({
+                                    type: "post",
+                                    //async: false,
+                                    url: "/table/" + object.name + "/action/get",
+                                    //headers: {"Access-Control-Allow-Origin": "*"},
+
+                                    success: function (data) {
+                                        grid.data.parse(JSON.parse(data));
+                                        grid.data.sort({
+                                            by: "id",
+                                            dir: "asc"
+
+                                        });
+                                        needSave = false;
+                                    }
+                                });
+
+                            }
+                        });
+                    }
+
+                }
+            });
+        }
         var cols = [];
         for (var i = 0; i < object.listForm.length; i++) {
             var field = object.listForm[i];
@@ -138,139 +340,7 @@ function showListForm(id, mode, cb) {
         dhxWindow.show();
         var restore = dhxWindow.getSize();
 
-        toolbar.events.on("Click", function (id, e) {
-            if (id === "add") {
-                if (needSave) {
-                    alert('Save prefer record!');
-                    return;
-                }
-                var formEditMode = object.formEditMode;
-                if (formEditMode) {
 
-                } else {
-                    var parcel = {table: '', fields: ''};
-
-                    parcel.table = object.name;
-                    for (var i = 0; i < object.listForm.length; i++) {
-                        if (object.listForm[i].autoIncrement) {
-                            parcel.fields = parcel.fields + object.listForm[i].fieldId + ",";
-                        }
-                    }
-                    parcel.fields = parcel.fields.substring(0, parcel.fields.length - 1);
-                    //alert(JSON.stringify(parcel));
-
-                    if (parcel.fields.length > 0) {
-                        $.ajax({
-                            type: "post",
-                            //async: false,
-                            url: "/getMax",
-                            data: parcel,
-                            //headers: {"Access-Control-Allow-Origin": "*"},
-
-                            success: function (data) {
-
-                                var maxVals = JSON.parse(data);
-                                var maxObj = {};
-                                for (var i = 0; i < maxVals.length; i++) {
-                                    maxObj[Object.keys(maxVals[i])[0]] = maxVals[i][Object.keys(maxVals[i])[0]];
-                                }
-                                //alert(JSON.stringify(maxObj));
-                                var newItem = {};
-                                for (var i = 0; i < object.listForm.length; i++) {
-                                    newItem[object.listForm[i].fieldId] = "";
-                                    if (object.listForm[i].autoIncrement) {
-                                        newItem[object.listForm[i].fieldId] = maxObj['max(' + object.listForm[i].fieldId + ')'] + 1;
-                                    }
-                                }
-                                //alert(JSON.stringify(newItem));
-
-
-                                grid.data.add(newItem);
-                                needSave = true;
-
-                            }
-                        });
-                    }
-
-
-                }
-
-            }
-            if (id === "refresh") {
-                $.ajax({
-                    type: "post",
-                    //async: false,
-                    url: "/table/" + object.name + "/action/get",
-                    //headers: {"Access-Control-Allow-Origin": "*"},
-
-                    success: function (data) {
-                        grid.data.parse(JSON.parse(data));
-                        needSave = false;
-                    }
-                });
-            }
-            if (id === "save") {
-
-                if (selectItem._id) {
-                    $.ajax({
-                        type: "post",
-                        //async: false,
-                        data: selectItem,
-                        url: "/table/" + object.name + "/action/put",
-                        //headers: {"Access-Control-Allow-Origin": "*"},
-
-                        success: function (data) {
-                            $.ajax({
-                                type: "post",
-                                //async: false,
-                                url: "/table/" + object.name + "/action/get",
-                                //headers: {"Access-Control-Allow-Origin": "*"},
-
-                                success: function (data) {
-                                    grid.data.parse(JSON.parse(data));
-                                    grid.data.sort({
-                                        by: "id",
-                                        dir: "asc"
-
-                                    });
-                                    needSave = false;
-                                }
-                            });
-
-                        }
-                    });
-                } else {
-                    $.ajax({
-                        type: "post",
-                        //async: false,
-                        data: selectItem,
-                        url: "/table/" + object.name + "/action/post",
-                        //headers: {"Access-Control-Allow-Origin": "*"},
-
-                        success: function (data) {
-                            $.ajax({
-                                type: "post",
-                                //async: false,
-                                url: "/table/" + object.name + "/action/get",
-                                //headers: {"Access-Control-Allow-Origin": "*"},
-
-                                success: function (data) {
-                                    grid.data.parse(JSON.parse(data));
-                                    grid.data.sort({
-                                        by: "id",
-                                        dir: "asc"
-
-                                    });
-                                    needSave = false;
-                                }
-                            });
-
-                        }
-                    });
-                }
-
-            }
-        });
 
 
     });

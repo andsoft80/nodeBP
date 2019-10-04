@@ -320,17 +320,23 @@ function buildObject(id, cb) {
                 //console.log(doc.fields.length);
                 if (doc.objectType === "dir" || doc.objectType === "doc") {
                     var haveId = false;
+                    var haveName = false;
                     for (var i = 0; i < doc.listForm.length; i++) {
                         if (doc.listForm[i].fieldId === 'id') {
                             haveId = true;
-                            break;
+
+                        }
+                        if (doc.listForm[i].fieldId === 'name') {
+                            haveName = true;
+
                         }
                     }
-                    if (!haveId) {
+                    if (!haveId || !haveName) {
                         res.status = 500;
-                        res.text = "List Form of " + doc.name + " have not id field!";
-                        con.end();
+                        res.text = "List Form of " + doc.name + " have not id or name field!";
+                        con.destroy();
                         cb(res);
+                        return;
                     }
                 }
                 var sqlStr = "show tables like " + "'" + doc.name + "'";
@@ -339,7 +345,7 @@ function buildObject(id, cb) {
                     if (err) {
                         res.status = 500;
                         res.text = err;
-                        con.end();
+                        con.destroy();
                         cb(res);
 
                     }
@@ -351,7 +357,7 @@ function buildObject(id, cb) {
                             if (err) {
                                 res.status = 500;
                                 res.text = err;
-                                con.end();
+                                con.destroy();
                                 cb(res);
 
                             }
@@ -418,12 +424,12 @@ function buildObject(id, cb) {
                                         if (errors.length > 0) {
                                             res.status = 500;
                                             res.text = errors;
-                                            con.end();
+                                            con.destroy();
                                             cb(res);
                                         } else {//stub for DB process
                                             res.status = 200;
                                             res.text = "DB builds";
-                                            con.end();
+                                            con.destroy();
                                             cb(res);
 
                                         }
@@ -453,14 +459,14 @@ function buildObject(id, cb) {
                             if (err) {
                                 res.status = 500;
                                 res.text = err;
-                                con.end();
+                                con.destroy();
                                 cb(res);
 
                             }
                             ;
                             res.status = 200;
                             res.text = 'Table created!';
-                            con.end();
+                            con.destroy();
                             cb(res);
                         });
                     }
@@ -471,7 +477,7 @@ function buildObject(id, cb) {
 
                 res.status = 500;
                 res.text = "Object not found!";
-                con.end();
+                con.destroy();
                 cb(res);
 
 
@@ -552,8 +558,8 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 //    });
     var con = getMySQLConnection();
     con.connect(function (err) {
-        if (err){
-            console.log(JSON.stringify(err));
+        if (err) {
+
             res.end(JSON.stringify(err));
         }
 
@@ -588,7 +594,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             if (err)
                 res.end(JSON.stringify(err));
             res.end(JSON.stringify(result));
-
+            con.destroy();
         });
     }
     if (action === 'put') {
@@ -611,7 +617,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             if (err)
                 res.end(JSON.stringify(err));
             res.end(JSON.stringify(result));
-
+            con.destroy();
         });
     }
 
@@ -626,7 +632,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             if (err)
                 res.end(JSON.stringify(err));
             res.end(JSON.stringify(result));
-
+            con.destroy();
         });
 
 
@@ -652,11 +658,12 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 
         //console.log(con);
         con.query(sqlStr, function (err, result) {
-            if (err)
+            if (err) {
+
                 res.end(JSON.stringify(err));
+            }
             res.end(JSON.stringify(result));
-            //res.end(result);
-            //console.log(JSON.stringify(result));
+            con.destroy();
 
         });
 
@@ -674,16 +681,16 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 
             //console.log(JSON.stringify(columns));
             res.end(JSON.stringify(result));
-
+            con.destroy();
         });
 
 
     }
-    con.destroy(function (err) {
-        if (err) {
-            return console.log("Ошибка: " + err.message);
-        }
-    });
+//    con.destroy(function (err) {
+//        if (err) {
+//            return console.log("Ошибка: " + err.message);
+//        }
+//    });
 
 });
 

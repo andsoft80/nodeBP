@@ -899,7 +899,9 @@ and open the template in the editor.
                             }
                         });
 
-                        showListForm(data._id, false);
+                        showListForm(data._id, false, function(data){
+                            alert(JSON.stringify(data));
+                        });
                     }
 
                 });

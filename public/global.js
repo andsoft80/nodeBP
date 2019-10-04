@@ -5,6 +5,9 @@ var hh = 23;
 function showListForm(id, mode, cb) {
     var needSave = false;
     var selectItem = null;
+    var editCell = {};
+    var rh = 23;
+    var hh = 23;
     getObject(id, function (object) {
         //alert(object.name);
         var dhxWindow = new dhx.Window({
@@ -267,7 +270,7 @@ function showListForm(id, mode, cb) {
 
                 }
             });
-        }
+        }//edit mode end
         var cols = [];
         for (var i = 0; i < object.listForm.length; i++) {
             var field = object.listForm[i];
@@ -292,16 +295,84 @@ function showListForm(id, mode, cb) {
             height: 300
         });
 
-        grid.events.on("CellClick", function (row, column, e) {
-            selectItem = row;
-        });
+
 
         grid.events.on("CellDblClick", function (row, column, e) {
             //alert(row.id+" "+column.id);
-            grid.edit(row.id, column.id);
+            if (!mode) {
+                editCell.r = row.id;
+                editCell.c = column.id;
+                grid.edit(row.id, column.id);
+                var isEDT = false;
+                var edtField = {};
+                for (var i = 0; i < object.listForm.length; i++) {
+                    if (object.listForm[i].fieldId === column.id && object.listForm[i].type === "Extend") {
+                        isEDT = true;
+                        edtField = object.listForm[i];
+                        break;
+                    }
+                }
+                if (isEDT) {
+
+                    if ($(".dhx_grid-body")[0].getBoundingClientRect().x + $(".dhx_grid-body")[0].getBoundingClientRect().width >= e.target.getBoundingClientRect().x + e.target.getBoundingClientRect().width) {
+                        //var rect = grid.getCellRect(row.id, column.id);
+                        var rect = null;
+                        //alert(e.target.parentNode.className);
+                        if (e.target.parentNode.className.indexOf('dhx_grid-cell') > -1) {
+                            rect = e.target.parentNode.getBoundingClientRect();
+                            var f = e.target.parentNode;
+                        } else {
+                            rect = e.target.getBoundingClientRect();
+                            var f = e.target;
+                        }
+
+                        var btn = document.createElement("button");
+                        btn.setAttribute('id', "editButton");
+                        btn.innerHTML = '...';
+                        btn.style.top = '1px';
+                        btn.style.zIndex = 0;
+                        btn.style.left = (f.offsetWidth - rh - 1) + 'px';
+                        btn.style.position = 'absolute';
+                        btn.style.height = btn.style.width = rh + 'px';
+                        f.appendChild(btn);
+                        btn.onclick = function(){
+                            var edtData = edtField.edtType;
+                            showListForm(edtData.objectName, true, function(data){
+                                selectItem[column.id] = data.id;
+                                selectItem[column.id].title = 'mama';
+                                grid.paint();
+                            })
+                        };
+                    }
+                }
+
+
+            } else {
+                var result = {};
+                result.id = row._id;
+                result.name = row.name;
+                cb(result);
+                dhxWindow.hide();
+            }
         });
         grid.events.on("AfterEditEnd", function (value, row, column) {
             selectItem = row;
+        });
+        grid.events.on("CellClick", function (row, column, e) {
+            selectItem = row;
+            if (row.id != editCell.r | column.id != editCell.c) {
+                $('#editButton').remove();
+            }
+
+        });
+
+        $(".dhx_grid-body").on('scroll', function () {
+            $('#editButton').remove();
+        });
+
+        $(".dhx_grid-header-cell").click(function () {
+
+            $('#editButton').remove();
         });
         $.ajax({
             type: "post",

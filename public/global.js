@@ -10,6 +10,7 @@ function showListForm(id, mode, cb) {
     var hh = 23;
     getObject(id, function (object) {
         //alert(object.name);
+        $(".dhx_popup--window_active").removeClass("dhx_popup--window_active");
         var dhxWindow = new dhx.Window({
             title: object.name,
             modal: mode,
@@ -18,6 +19,8 @@ function showListForm(id, mode, cb) {
             minHeight: 500,
             minWidth: 500,
             closable: true
+
+
         });
         var layout = new dhx.Layout(null, {
             rows: [
@@ -89,7 +92,10 @@ function showListForm(id, mode, cb) {
                         }
                         parcel.fields = parcel.fields.substring(0, parcel.fields.length - 1);
                         //alert(JSON.stringify(parcel));
-
+                        var newItem = {};
+                        for (var i = 0; i < object.listForm.length; i++) {
+                            newItem[object.listForm[i].fieldId] = "";
+                        }
                         if (parcel.fields.length > 0) {
                             $.ajax({
                                 type: "post",
@@ -106,25 +112,30 @@ function showListForm(id, mode, cb) {
                                         maxObj[Object.keys(maxVals[i])[0]] = maxVals[i][Object.keys(maxVals[i])[0]];
                                     }
                                     //alert(JSON.stringify(maxObj));
-                                    var newItem = {};
+
                                     for (var i = 0; i < object.listForm.length; i++) {
-                                        newItem[object.listForm[i].fieldId] = "";
+                                        //newItem[object.listForm[i].fieldId] = "";
                                         if (object.listForm[i].autoIncrement) {
                                             newItem[object.listForm[i].fieldId] = maxObj['max(' + object.listForm[i].fieldId + ')'] + 1;
                                         }
                                     }
                                     //alert(JSON.stringify(newItem));
-
-
                                     grid.data.add(newItem);
+                                    grid.selection.setCell(newItem.id, "name");
                                     //grid.scrollTo(newItem.id,"id");
                                     needSave = true;
 
+
+
                                 }
                             });
+                        } else {
+                            newItem.id = '';
+                            grid.data.add(newItem);
+                            grid.selection.setCell(newItem.id, "name");
+                            //grid.scrollTo(newItem.id,"id");
+                            needSave = true;
                         }
-
-
                     }
 
                 }
@@ -271,6 +282,9 @@ function showListForm(id, mode, cb) {
                 }
             });
         }//edit mode end
+        else {
+            //dhxWindow.css = 'zi';
+        }
         var cols = [];
         for (var i = 0; i < object.listForm.length; i++) {
             var field = object.listForm[i];
@@ -335,12 +349,13 @@ function showListForm(id, mode, cb) {
                         btn.style.position = 'absolute';
                         btn.style.height = btn.style.width = rh + 'px';
                         f.appendChild(btn);
-                        btn.onclick = function(){
+                        btn.onclick = function () {
                             var edtData = edtField.edtType;
-                            showListForm(edtData.objectName, true, function(data){
+                            showListForm(edtData.objectName, true, function (data) {
                                 selectItem[column.id] = data.id;
-                                selectItem[column.id].title = 'mama';
+                                //selectItem[column.id].title = 'mama';
                                 grid.paint();
+                                toolbar.events.fire("Click",["save"]);
                             })
                         };
                     }

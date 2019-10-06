@@ -33,6 +33,9 @@ and open the template in the editor.
                 /*font-weight: bold;*/
                 background: silver;
             }
+            .zi{
+                z-index: 1000;
+            }
         </style>
         <style>
             .ht .dhx_input {
@@ -225,66 +228,83 @@ and open the template in the editor.
             layout.cell('s_toolbar').attach(toolbar);
 
             toolbar.events.on("Click", function (id, e) {
+
                 var selCurrTreeItem = tree.selection.getId();
+                var selCurrTreeItemName = tree.selection.getItem().value;
+
 
                 if (selCurrTreeItem !== undefined) {
-                    var selCurrTreeItemName = tree.selection.getItem().value;
-                    //alert(JSON.stringify(selCurrTreeItemName));
-                    var rows = [
-                        {
-                            type: "text",
-                            //label: "text",
-                            //labelInline: true,
-                            value: "Create new of " + selCurrTreeItemName
-                        },
-                        {
-                            id: "name",
-                            type: "input",
-                            label: "Name",
-                            icon: "dxi-magnify",
-                            placeholder: "Object name"
-                        },
-                        {
-                            cols: [
-                                {
-                                    type: "button",
-                                    value: "Save",
-                                    size: "medium",
-                                    view: "flat",
-                                    color: "primary",
-                                    id: "saveObject"
-                                },
-                                {
-                                    type: "button",
-                                    value: "Cancel",
-                                    size: "medium",
-                                    view: "flat",
-                                    color: "primary",
-                                    id: "cancel"
+                    //alert(JSON.stringify(selCurrTreeItem));
+                    if (tree.data.getParent(selCurrTreeItem).indexOf("ROOT") == -1) {//second level and more...
+                        alert('Select first level!');
+                        return;
+                    }
+
+                    if (id === "add") {
+
+
+                        //alert(JSON.stringify(selCurrTreeItemName));
+                        var rows = [
+                            {
+                                type: "text",
+                                //label: "text",
+                                //labelInline: true,
+                                value: "Create new of " + selCurrTreeItemName
+                            },
+                            {
+                                id: "name",
+                                type: "input",
+                                label: "Name",
+                                icon: "dxi-magnify",
+                                placeholder: "Object name"
+                            },
+                            {
+                                cols: [
+                                    {
+                                        type: "button",
+                                        value: "Save",
+                                        size: "medium",
+                                        view: "flat",
+                                        color: "primary",
+                                        id: "saveObject"
+                                    },
+                                    {
+                                        type: "button",
+                                        value: "Cancel",
+                                        size: "medium",
+                                        view: "flat",
+                                        color: "primary",
+                                        id: "cancel"
+                                    }
+                                ]}
+
+                        ];
+                        var form = new dhx.Form(null, {rows});
+                        layout.cell('r_props').attach(form);
+                        layout.cell('r_props2').attachHTML("<div></div>");
+                        form.events.on("ButtonClick", function (id, e) {
+                            if (id === "saveObject") {
+                                if (form.getValue().name) {
+//                                    if (tree.data.exists(form.getValue().name)){
+//                                        alert("Name of object is busy. Change name!");
+//                                        return;
+//                                    }
+                                    
+                                    var objectModel = {};
+                                    objectModel.objectType = tree.selection.getItem().id;
+                                    objectModel.name = form.getValue().name;
+
+                                    saveObject(objectModel, form);
+                                } else {
+                                    alert("Input name of object!");
                                 }
-                            ]}
-
-                    ];
-                    var form = new dhx.Form(null, {rows});
-                    layout.cell('r_props').attach(form);
-                    layout.cell('r_props2').attachHTML("<div></div>");
-                    form.events.on("ButtonClick", function (id, e) {
-                        if (id === "saveObject") {
-                            if (form.getValue().name) {
-                                var objectModel = {};
-                                objectModel.objectType = tree.selection.getItem().id;
-                                objectModel.name = form.getValue().name;
-
-                                saveObject(objectModel, form);
-                            } else {
-                                alert("Input name of object!");
                             }
-                        }
-                        if (id === "cancel") {
-                            // layout.cell('rightbar').detach(form);
-                            form.destructor();
-                        }
-                    });
+                            if (id === "cancel") {
+                                // layout.cell('rightbar').detach(form);
+                                form.destructor();
+                            }
+                        });
+                    }
                 }
             });
 
@@ -899,7 +919,7 @@ and open the template in the editor.
                             }
                         });
 
-                        showListForm(data._id, false, function(data){
+                        showListForm(data._id, false, function (data) {
                             alert(JSON.stringify(data));
                         });
                     }

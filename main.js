@@ -1,6 +1,7 @@
 var express = require('express');
 var fs = require('fs');
 var mongoose = require('mongoose');
+var uniqueValidator = require('mongoose-unique-validator');
 var mysql = require('mysql');
 var mySqlServerHost = 'localhost';
 
@@ -63,7 +64,7 @@ formTypes = {
 var objectSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     objectType: String,
-    name: String,
+    name: {type: String, unique: true, required: true, uniqueCaseInsensitive: true},
     fields: {
         type: mongoose.Schema.Types.Mixed,
         default: []
@@ -112,6 +113,8 @@ var objectSchema = mongoose.Schema({
     code: String,
     changed: {type: Boolean, default: true}
 });
+
+objectSchema.plugin(uniqueValidator);
 
 var MetaData = mongoose.model('MetaData', objectSchema);
 
@@ -650,22 +653,33 @@ app.post('/table/:tableName/action/:action', function (req, res) {
                 str = str + ' and ' + condition[i].field + " = '" + condition[i].value + "'";
             }
         }
-        if (id) {
-            sqlStr = "select * from " + tableName + " where _id =  '" + id + "'" + " " + str;
-        } else {
-            sqlStr = "select * from " + tableName + " " + str;
-        }
 
-        //console.log(con);
-        con.query(sqlStr, function (err, result) {
-            if (err) {
+        sqlStr = "select * from " + tableName;
 
-                res.end(JSON.stringify(err));
+        //////left joins for edt
+
+        var query = MetaData.findOne({name: tableName});
+        query.exec(function (err, doc) {
+            if (id) {
+                sqlStr = sqlStr + " where _id =  '" + id + "'";
+            } else {
+                sqlStr = sqlStr + " " + str;
             }
-            res.end(JSON.stringify(result));
-            con.destroy();
 
+            //console.log(con);
+            con.query(sqlStr, function (err, result) {
+                if (err) {
+
+                    res.end(JSON.stringify(err));
+                }
+                res.end(JSON.stringify(result));
+                con.destroy();
+
+            });
         });
+        ////////////////////////
+
+
 
 
     }

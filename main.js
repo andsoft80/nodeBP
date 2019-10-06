@@ -127,7 +127,10 @@ app.post('/metadata', function (req, res) {
     docInvoice = new MetaData(objectData);
     docInvoice.save(function (err, doc) {
         if (err)
-            throw res.send(JSON.stringify(err));
+        {
+            res.end(JSON.stringify(err));
+            return;
+        }
         res.send({"status": 200, "doc": doc});
     });
 
@@ -137,6 +140,11 @@ app.get('/metadata', function (req, res) {
 
     var query = MetaData.find({});
     query.exec(function (err, docs) {
+        if (err)
+        {
+            res.end(JSON.stringify(err));
+            return;
+        }
         res.send(docs);
     });
 
@@ -148,6 +156,11 @@ app.get('/metadata/:id', function (req, res) {
 
     var query = MetaData.findById(req.params.id);
     query.exec(function (err, docs) {
+        if (err)
+        {
+            res.end(JSON.stringify(err));
+            return;
+        }
         res.send(docs);
     });
 
@@ -163,7 +176,10 @@ app.put('/metadata', function (req, res) {
     var fieldsStr = (req.body.fields);
     MetaData.updateOne({_id: req.body._id}, objectData, function (err, result) {
         if (err)
-            throw res.send(JSON.stringify(err));
+        {
+            res.end(JSON.stringify(err));
+            return;
+        }
 
         console.log(JSON.stringify(result));
         res.send({"status": 200, "result": result});

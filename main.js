@@ -29,24 +29,44 @@ app.get('/', function (req, res) {
 
 });
 //var ping = false;
-function getMySQLConnection() {
-    var con = mysql.createConnection({
-        host: mySqlServerHost,
-        user: 'root',
-        password: 'root',
-        database: 'bp'
+
+var con = mysql.createConnection({
+    host: mySqlServerHost,
+    user: 'root',
+    password: 'root',
+    database: 'bp'
 
 
-    });
+});
+con.connect(function (err) {
+    if (err)
+        throw err;
+    console.log('Connected to MySQL...');
+
+});
+
+setInterval(function () {
+    con.query('SELECT 1');
+}, 5000);
+// ping = true;    
+//function getMySQLConnection() {
+//    var con = mysql.createConnection({
+//        host: mySqlServerHost,
+//        user: 'root',
+//        password: 'root',
+//        database: 'bp'
+//
+//
+//    });
 //    if (!ping) {
 //        setInterval(function () {
 //            con.query('SELECT 1');
 //        }, 5000);
 //        ping = true;
 //    }
-    return con;
-}
-;
+//  return con;
+//}
+//;
 //ObjectTree
 objectTypes = {
     doc: 'doc',
@@ -317,195 +337,201 @@ function buildObject(id, cb) {
 //-->db///////////////////////
     var res = {};
 
-    var con = getMySQLConnection();
-    con.connect(function (err) {
-        if (err) {
-            res.status = 500;
-            res.text = err;
-
-            cb(res);
-        }
-
-
-
-        console.log('Connected to MySQL...');
+    //var con = getMySQLConnection();
+//    con.connect(function (err) {
+//        if (err) {
+//            res.status = 500;
+//            res.text = err;
+//
+//            cb(res);
+//            return;
+//        }
 
 
 
-        var query = MetaData.findById(id);
-        query.exec(function (err, doc) {
-            if (doc) {
-                //if (doc.fields.length > 0) {
-                //console.log(doc.fields.length);
-                if (doc.objectType === "dir" || doc.objectType === "doc") {
-                    var haveId = false;
-                    var haveName = false;
-                    for (var i = 0; i < doc.listForm.length; i++) {
-                        if (doc.listForm[i].fieldId === 'id') {
-                            haveId = true;
 
-                        }
-                        if (doc.listForm[i].fieldId === 'name') {
-                            haveName = true;
 
-                        }
+
+
+    var query = MetaData.findById(id);
+    query.exec(function (err, doc) {
+        if (doc) {
+            //if (doc.fields.length > 0) {
+            //console.log(doc.fields.length);
+            if (doc.objectType === "dir" || doc.objectType === "doc") {
+                var haveId = false;
+                var haveName = false;
+                for (var i = 0; i < doc.listForm.length; i++) {
+                    if (doc.listForm[i].fieldId === 'id') {
+                        haveId = true;
+
                     }
-                    if (!haveId || !haveName) {
-                        res.status = 500;
-                        res.text = "List Form of " + doc.name + " have not id or name field!";
-                        con.destroy();
-                        cb(res);
-                        return;
+                    if (doc.listForm[i].fieldId === 'name') {
+                        haveName = true;
+
                     }
                 }
-                var sqlStr = "show tables like " + "'" + doc.name + "'";
-                con.query(sqlStr, function (err, result) {
+                if (!haveId || !haveName) {
+                    res.status = 500;
+                    res.text = "List Form of " + doc.name + " have not id or name field!";
+                    //con.end();
+                    cb(res);
+                    return;
+                }
+            }
+            var sqlStr = "show tables like " + "'" + doc.name + "'";
+            con.query(sqlStr, function (err, result) {
 
-                    if (err) {
-                        res.status = 500;
-                        res.text = err;
-                        con.destroy();
-                        cb(res);
+                if (err) {
+                    res.status = 500;
+                    res.text = err;
+                    //con.end();
+                    cb(res);
+                    return;
 
-                    }
-                    ;
+                }
+                ;
 
-                    if (result.length > 0) {//table exist
-                        var sql = "SHOW COLUMNS FROM " + doc.name;
-                        con.query(sql, function (err, result) {
-                            if (err) {
-                                res.status = 500;
-                                res.text = err;
-                                con.destroy();
-                                cb(res);
-
-                            }
-                            ;
-
-                            console.log(JSON.stringify(result));
-                            var fieldsDB = [];
-                            for (var i = 0; i < result.length; i++) {
-                                var fieldDB = {};
-                                fieldDB.fieldId = result[i].Field;
-                                if (fieldDB.fieldId === "_id") {
-                                    fieldDB.delete = false;
-                                    fieldDB.changeType = false;
-                                } else {
-                                    fieldDB.delete = true;
-                                    fieldDB.changeType = true;
-                                }
-                                //fieldDB.Null = result[i].Null;
-                                fieldDB.type = dbTypeToUserType(result[i].Type)
-                                fieldsDB.push(fieldDB);
-
-                            }
-
-                            var fdbl = fieldsDB.length;
-                            if (doc.fields.length) {
-                                for (var i = 0; i < doc.fields.length; i++) {
-                                    var push = true;
-                                    for (var j = 0; j < fdbl; j++) {
-                                        if (doc.fields[i].fieldId === fieldsDB[j].fieldId) {
-                                            push = false;
-                                            fieldsDB[j].delete = false;
-                                            if (fieldsDB[j].type === doc.fields[i].type || ((fieldsDB[j].type === 'String') && (doc.fields[i].type === 'Extend'))) {
-                                                fieldsDB[j].changeType = false;
-                                                console.log(fieldsDB[j].type);
-                                            } else {
-                                                fieldsDB[j].type = doc.fields[i].type;
-                                                fieldsDB[j].autoIncrement = doc.fields[i].autoIncrement;
-                                            }
-
-
-                                        }
-                                    }
-                                    if (push) {
-                                        fieldsDB.push(doc.fields[i]);
-                                    }
-                                }
-                            }
-                            console.log(JSON.stringify(fieldsDB));
-                            var errors = [];
-                            var cnt = 0;
-
-                            for (var i = 0; i < fieldsDB.length; i++) {
-                                var field = fieldsDB[i];
-
-                                buildField(field, con, doc.name, function (data) {
-                                    cnt++;
-                                    if (data.status === 500) {
-                                        errors.push(data);
-                                        console.log('error field ' + data.fieldId);
-                                    }
-
-                                    if (cnt === fieldsDB.length) {
-                                        console.log(JSON.stringify(errors));
-                                        if (errors.length > 0) {
-                                            res.status = 500;
-                                            res.text = errors;
-                                            con.destroy();
-                                            cb(res);
-                                        } else {//stub for DB process
-                                            res.status = 200;
-                                            res.text = "DB builds";
-                                            con.destroy();
-                                            cb(res);
-
-                                        }
-                                    }
-
-                                });
-
-
-                            }
-
-                        });
-
-                    } else {//table not exist
-                        //var sql = "CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))";
-
-
-                        var sql = "CREATE TABLE " + doc.name + " (";
-                        for (var i = 0; i < doc.fields.length; i++) {
-                            var field = doc.fields[i];
-
-                            sql = sql + field.fieldId + " " + userTypeToDbType(field.type) + ",";
+                if (result.length > 0) {//table exist
+                    var sql = "SHOW COLUMNS FROM " + doc.name;
+                    con.query(sql, function (err, result) {
+                        if (err) {
+                            res.status = 500;
+                            res.text = err;
+                            //con.end();
+                            cb(res);
+                            return;
 
                         }
-                        sql = sql.substring(0, sql.length - 1);
-                        sql = sql + ", _id varchar(255) not null, PRIMARY KEY (_id))";
-                        con.query(sql, function (err, result) {
-                            if (err) {
-                                res.status = 500;
-                                res.text = err;
-                                con.destroy();
-                                cb(res);
+                        ;
 
+                        console.log(JSON.stringify(result));
+                        var fieldsDB = [];
+                        for (var i = 0; i < result.length; i++) {
+                            var fieldDB = {};
+                            fieldDB.fieldId = result[i].Field;
+                            if (fieldDB.fieldId === "_id") {
+                                fieldDB.delete = false;
+                                fieldDB.changeType = false;
+                            } else {
+                                fieldDB.delete = true;
+                                fieldDB.changeType = true;
                             }
-                            ;
-                            res.status = 200;
-                            res.text = 'Table created!';
-                            con.destroy();
-                            cb(res);
-                        });
+                            //fieldDB.Null = result[i].Null;
+                            fieldDB.type = dbTypeToUserType(result[i].Type)
+                            fieldsDB.push(fieldDB);
+
+                        }
+
+                        var fdbl = fieldsDB.length;
+                        if (doc.fields.length) {
+                            for (var i = 0; i < doc.fields.length; i++) {
+                                var push = true;
+                                for (var j = 0; j < fdbl; j++) {
+                                    if (doc.fields[i].fieldId === fieldsDB[j].fieldId) {
+                                        push = false;
+                                        fieldsDB[j].delete = false;
+                                        if (fieldsDB[j].type === doc.fields[i].type || ((fieldsDB[j].type === 'String') && (doc.fields[i].type === 'Extend'))) {
+                                            fieldsDB[j].changeType = false;
+                                            console.log(fieldsDB[j].type);
+                                        } else {
+                                            fieldsDB[j].type = doc.fields[i].type;
+                                            fieldsDB[j].autoIncrement = doc.fields[i].autoIncrement;
+                                        }
+
+
+                                    }
+                                }
+                                if (push) {
+                                    fieldsDB.push(doc.fields[i]);
+                                }
+                            }
+                        }
+                        console.log(JSON.stringify(fieldsDB));
+                        var errors = [];
+                        var cnt = 0;
+
+                        for (var i = 0; i < fieldsDB.length; i++) {
+                            var field = fieldsDB[i];
+
+                            buildField(field, con, doc.name, function (data) {
+                                cnt++;
+                                if (data.status === 500) {
+                                    errors.push(data);
+                                    console.log('error field ' + data.fieldId);
+                                }
+
+                                if (cnt === fieldsDB.length) {
+                                    console.log(JSON.stringify(errors));
+                                    if (errors.length > 0) {
+                                        res.status = 500;
+                                        res.text = errors;
+                                        //con.end();
+                                        cb(res);
+                                        return;
+                                    } else {//stub for DB process
+                                        res.status = 200;
+                                        res.text = "DB builds";
+                                        //con.end();
+                                        cb(res);
+
+                                    }
+                                }
+
+                            });
+
+
+                        }
+
+                    });
+
+                } else {//table not exist
+                    //var sql = "CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))";
+
+
+                    var sql = "CREATE TABLE " + doc.name + " (";
+                    for (var i = 0; i < doc.fields.length; i++) {
+                        var field = doc.fields[i];
+
+                        sql = sql + field.fieldId + " " + userTypeToDbType(field.type) + ",";
+
                     }
+                    sql = sql.substring(0, sql.length - 1);
+                    sql = sql + ", _id varchar(255) not null, PRIMARY KEY (_id))";
+                    con.query(sql, function (err, result) {
+                        if (err) {
+                            res.status = 500;
+                            res.text = err;
+                            //con.end();
+                            cb(res);
+                            return;
 
-                });
-                //}
-            } else {
+                        }
+                        ;
+                        res.status = 200;
+                        res.text = 'Table created!';
+                        //con.end();
+                        cb(res);
+                    });
+                }
 
-                res.status = 500;
-                res.text = "Object not found!";
-                con.destroy();
-                cb(res);
+            });
+            //}
+        } else {
+
+            res.status = 500;
+            res.text = "Object not found!";
+            //con.end();
+            cb(res);
+            return;
 
 
-            }
-        });
-
-
-
+        }
     });
+
+
+
+    //});
 
     //cb(res);
 
@@ -513,14 +539,14 @@ function buildObject(id, cb) {
 //<--db/////////////////////////
 
 }
-app.post('/build', function (req, res) {
+app.post('/build', function (req, resp) {
 
     var objectData = (req.body);
     if (req.body.id) {
 
         buildObject(objectData.id, function (data) {
-
-            res.send(data);
+            //console.log(JSON.stringify(data));
+            resp.send(data);
             //console.log(JSON.stringify(data))
         });
 
@@ -537,26 +563,26 @@ app.post('/getMax', function (req, res) {
     var fieldsStr = req.body.fields;
     var fields = fieldsStr.split(",");
 
-    var con = getMySQLConnection();
+    //var con = getMySQLConnection();
     //console.log(con);
-    con.connect(function (err) {
+//    con.connect(function (err) {
+//        if (err)
+//            res.end(JSON.stringify(err));
+
+    var sqlStr = "select ";
+    for (var i = 0; i < fields.length; i++) {
+        sqlStr = sqlStr + "max(" + fields[i] + "),";
+    }
+    sqlStr = sqlStr.substring(0, sqlStr.length - 1);
+    sqlStr = sqlStr + " from " + table;
+    console.log(sqlStr);
+    con.query(sqlStr, function (err, result) {
         if (err)
             res.end(JSON.stringify(err));
+        res.end(JSON.stringify(result));
 
-        var sqlStr = "select ";
-        for (var i = 0; i < fields.length; i++) {
-            sqlStr = sqlStr + "max(" + fields[i] + "),";
-        }
-        sqlStr = sqlStr.substring(0, sqlStr.length - 1);
-        sqlStr = sqlStr + " from " + table;
-        console.log(sqlStr);
-        con.query(sqlStr, function (err, result) {
-            if (err)
-                res.end(JSON.stringify(err));
-            res.end(JSON.stringify(result));
-
-        });
     });
+    //});
 });
 
 /////////////universal sql api//////////////////////////////////
@@ -575,15 +601,15 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 //
 //
 //    });
-    var con = getMySQLConnection();
-    con.connect(function (err) {
-        if (err) {
-
-            res.end(JSON.stringify(err));
-        }
-
-
-    });
+    //var con = getMySQLConnection();
+//    con.connect(function (err) {
+//        if (err) {
+//
+//            res.end(JSON.stringify(err));
+//        }
+//
+//
+//    });
 
     var tableName = req.params.tableName;
     var action = req.params.action;
@@ -594,6 +620,9 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             if (Object.keys(req.body)[i] == 'an') {
                 continue;
             }
+            if (Object.keys(req.body)[i].indexOf('edt_') === 0) {
+                continue;
+            }
             sqlStr = sqlStr + Object.keys(req.body)[i] + ",";
         }
 
@@ -601,6 +630,9 @@ app.post('/table/:tableName/action/:action', function (req, res) {
         sqlStr = sqlStr + "_id) VALUES (";
         for (i = 0; i < Object.keys(req.body).length; i++) {
             if (Object.keys(req.body)[i] == 'an') {
+                continue;
+            }
+            if (Object.keys(req.body)[i].indexOf('edt_') === 0) {
                 continue;
             }
             sqlStr = sqlStr + "'" + req.body[Object.keys(req.body)[i]] + "',";
@@ -613,7 +645,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             if (err)
                 res.end(JSON.stringify(err));
             res.end(JSON.stringify(result));
-            con.destroy();
+            //con.destroy();
         });
     }
     if (action === 'put') {
@@ -627,6 +659,10 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             if (Object.keys(req.body)[i] == 'an') {
                 continue;
             }
+            if (Object.keys(req.body)[i].indexOf('edt_') === 0) {
+                continue;
+            }
+
             sqlStr = sqlStr + Object.keys(req.body)[i] + "='" + req.body[Object.keys(req.body)[i]] + "',"
         }
         sqlStr = sqlStr.substring(0, sqlStr.length - 1);
@@ -636,7 +672,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             if (err)
                 res.end(JSON.stringify(err));
             res.end(JSON.stringify(result));
-            con.destroy();
+            //con.destroy();
         });
     }
 
@@ -651,7 +687,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             if (err)
                 res.end(JSON.stringify(err));
             res.end(JSON.stringify(result));
-            con.destroy();
+            //con.destroy();
         });
 
 
@@ -670,26 +706,52 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             }
         }
 
-        sqlStr = "select * from " + tableName;
+        //sqlStr = "select * from " + tableName;
+        //sqlStr = "select "+tableName+"._id,";
+        sqlStr = "select " + tableName + ".*,";
 
         //////left joins for edt
 
         var query = MetaData.findOne({name: tableName});
         query.exec(function (err, doc) {
+            if (!doc) {
+                res.end(JSON.stringify("Metadata for object " + tableName + " not found!"));
+                return;
+            }
+            var lj = '';
+
+            for (var i = 0; i < doc.listForm.length; i++) {
+                if (doc.listForm[i].type === "Extend") {
+
+                    var extData = doc.listForm[i].edtType;
+                    var edtTableName = extData.objectName;
+                    lj = lj + " left join " + edtTableName + " as t" +i+" on t" + i + "._id = " + tableName + "." + doc.listForm[i].fieldId;
+                    sqlStr = sqlStr + "t"+i + ".name as edt_" + doc.listForm[i].fieldId + ",";
+                }
+//                else {
+//                    sqlStr = sqlStr + tableName+"."+doc.listForm[i].fieldId + ","
+//                }
+
+            }
+            sqlStr = sqlStr.substring(0, sqlStr.length - 1);
+            sqlStr = sqlStr + " from " + tableName;
+            sqlStr = sqlStr + lj;
+
+
             if (id) {
                 sqlStr = sqlStr + " where _id =  '" + id + "'";
             } else {
                 sqlStr = sqlStr + " " + str;
             }
 
-            //console.log(con);
+            console.log(sqlStr);
             con.query(sqlStr, function (err, result) {
                 if (err) {
 
                     res.end(JSON.stringify(err));
                 }
                 res.end(JSON.stringify(result));
-                con.destroy();
+                //con.destroy();
 
             });
         });
@@ -711,7 +773,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 
             //console.log(JSON.stringify(columns));
             res.end(JSON.stringify(result));
-            con.destroy();
+            //con.destroy();
         });
 
 

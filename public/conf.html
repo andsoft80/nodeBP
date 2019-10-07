@@ -689,7 +689,7 @@ and open the template in the editor.
                         fillEdtName(field.edtType.objectType, form2, rows2);
                         //alert(JSON.stringify(tree.data.getItem(field.edtType.objectName).value));
                         //form2.setValue({'objectName': tree.data.getItem(field.edtType.objectName).value});
-                        form2.setValue({'objectName': field.edtType.objectName});
+                        form2.setValue({'objectName': field.edtType.objectId});
                     }
                 }
                 layout.cell('r_props').attach(form);
@@ -720,7 +720,9 @@ and open the template in the editor.
                                 newField.autoIncrement = form.getValue().autoIncrement;
                                 if (form.getValue().type === "Extend") {
                                     newField.edtType.objectType = form.getValue().objectType;
-                                    newField.edtType.objectName = form2.getValue().objectName[0];
+                                    newField.edtType.objectId = form2.getValue().objectName[0];
+                                    //alert(JSON.stringify(form2.getValue()));
+                                    newField.edtType.objectName = tree.data.getItem(form2.getValue().objectName[0]).value;
                                 }
 
                                 if (!field || list.selection.getItem().value.fieldId !== newField.fieldId) {

@@ -5,6 +5,7 @@ var hh = 23;
 function showListForm(id, mode, cb) {
     var needSave = false;
     var selectItem = null;
+    var selectCol = null;
     var editCell = {};
     var rh = 23;
     var hh = 23;
@@ -17,7 +18,7 @@ function showListForm(id, mode, cb) {
             resizable: true,
             movable: true,
             minHeight: 500,
-            minWidth: 500,
+            minWidth: 700,
             closable: true
 
 
@@ -94,7 +95,11 @@ function showListForm(id, mode, cb) {
                         //alert(JSON.stringify(parcel));
                         var newItem = {};
                         for (var i = 0; i < object.listForm.length; i++) {
-                            newItem[object.listForm[i].fieldId] = "";
+                            if (object.listForm[i].type === 'Integer' || object.listForm[i].type === 'Numeric') {
+                                newItem[object.listForm[i].fieldId] = 0;
+                            } else {
+                                newItem[object.listForm[i].fieldId] = null;
+                            }
                         }
                         if (parcel.fields.length > 0) {
                             $.ajax({
@@ -121,7 +126,7 @@ function showListForm(id, mode, cb) {
                                     }
                                     //alert(JSON.stringify(newItem));
                                     grid.data.add(newItem);
-                                    grid.selection.setCell(newItem.id, "name");
+                                    grid.selection.setCell(newItem.id, selectCol.id);
                                     //grid.scrollTo(newItem.id,"id");
                                     needSave = true;
 
@@ -240,6 +245,7 @@ function showListForm(id, mode, cb) {
 
                                         });
                                         needSave = false;
+
                                     }
                                 });
 
@@ -272,6 +278,7 @@ function showListForm(id, mode, cb) {
 
                                         });
                                         needSave = false;
+                                        grid.selection.setCell(selectItem.id, selectCol.id);
                                     }
                                 });
 
@@ -289,12 +296,29 @@ function showListForm(id, mode, cb) {
         for (var i = 0; i < object.listForm.length; i++) {
             var field = object.listForm[i];
             var newField = {};
-            newField.id = field.fieldId;
-            newField.header = field.alias;
-            if (field.type === "String") {
-                newField.width = 200;
+
+            if (field.type === "String"||field.type === "Extend") {
+                newField.width  = 300;
+                //newField.maxWidth  = 350;
             } else {
-                newField.width = 100;
+                newField.width  = 120;
+                //newField.maxWidth  = 250;
+            }
+            if (field.type === 'Extend') {
+//                newField.template = function (cellValue, row, col) {
+//                    if (row.edt_mainwarehouse!=='') {
+//                        //alert(JSON.stringify(row));
+//                        //cellValue = row["edt_"+field.fieldId];
+//                        cellValue = row.edt_mainwarehouse;
+//                        return cellValue;
+//                    }
+//                    
+//                };
+                newField.id = "edt_" + field.fieldId;
+                newField.header = field.alias;
+            } else {
+                newField.id = field.fieldId;
+                newField.header = field.alias;
             }
             cols.push(newField);
 
@@ -307,11 +331,17 @@ function showListForm(id, mode, cb) {
             //data: dataset,
             selection: "complex",
             height: 300
+            
+            //columnsAutoWidth : true
+            //fitToContainer : true
+
         });
 
 
 
         grid.events.on("CellDblClick", function (row, column, e) {
+            selectItem = row;
+            selectCol = column;
             //alert(row.id+" "+column.id);
             if (!mode) {
                 editCell.r = row.id;
@@ -320,7 +350,7 @@ function showListForm(id, mode, cb) {
                 var isEDT = false;
                 var edtField = {};
                 for (var i = 0; i < object.listForm.length; i++) {
-                    if (object.listForm[i].fieldId === column.id && object.listForm[i].type === "Extend") {
+                    if ("edt_"+object.listForm[i].fieldId === column.id && object.listForm[i].type === "Extend") {
                         isEDT = true;
                         edtField = object.listForm[i];
                         break;
@@ -351,11 +381,13 @@ function showListForm(id, mode, cb) {
                         f.appendChild(btn);
                         btn.onclick = function () {
                             var edtData = edtField.edtType;
-                            showListForm(edtData.objectName, true, function (data) {
-                                selectItem[column.id] = data.id;
+                            showListForm(edtData.objectId, true, function (data) {
+                                selectItem[column.id] = data.name;
+                                selectItem[column.id.replace("edt_","")] = data.id;
                                 //selectItem[column.id].title = 'mama';
                                 grid.paint();
-                                toolbar.events.fire("Click",["save"]);
+                                toolbar.events.fire("Click", ["save"]);
+
                             })
                         };
                     }
@@ -372,9 +404,12 @@ function showListForm(id, mode, cb) {
         });
         grid.events.on("AfterEditEnd", function (value, row, column) {
             selectItem = row;
+            selectCol = column;
+
         });
         grid.events.on("CellClick", function (row, column, e) {
             selectItem = row;
+            selectCol = column;
             if (row.id != editCell.r | column.id != editCell.c) {
                 $('#editButton').remove();
             }

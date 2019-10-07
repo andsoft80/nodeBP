@@ -85,6 +85,7 @@ var objectSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     objectType: String,
     name: {type: String, unique: true, required: true, uniqueCaseInsensitive: true},
+    alias: {type: String, required: true},
     fields: {
         type: mongoose.Schema.Types.Mixed,
         default: []

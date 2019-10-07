@@ -13,7 +13,7 @@ function showListForm(id, mode, cb) {
         //alert(object.name);
         $(".dhx_popup--window_active").removeClass("dhx_popup--window_active");
         var dhxWindow = new dhx.Window({
-            title: object.name,
+            title: object.alias,
             modal: mode,
             resizable: true,
             movable: true,

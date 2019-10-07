@@ -235,14 +235,14 @@ and open the template in the editor.
 
                 if (selCurrTreeItem !== undefined) {
                     //alert(JSON.stringify(selCurrTreeItem));
-                    if (tree.data.getParent(selCurrTreeItem).indexOf("ROOT") == -1) {//second level and more...
-                        alert('Select first level!');
-                        return;
-                    }
+
 
                     if (id === "add") {
 
-
+                        if (tree.data.getParent(selCurrTreeItem).indexOf("ROOT") == -1) {//second level and more...
+                            alert('Select first level!');
+                            return;
+                        }
                         //alert(JSON.stringify(selCurrTreeItemName));
                         var rows = [
                             {
@@ -254,9 +254,20 @@ and open the template in the editor.
                             {
                                 id: "name",
                                 type: "input",
-                                label: "Name",
-                                icon: "dxi-magnify",
-                                placeholder: "Object name"
+                                label: "Id",
+                                
+                                placeholder: "Object id",
+                                required: true,
+                                validation: "alphanumeric"
+                            },
+                            {
+                                id: "alias",
+                                type: "input",
+                                label: "Alias",
+                                
+                                placeholder: "Object alias",
+                                required: true
+                                
                             },
                             {
                                 cols: [
@@ -284,6 +295,10 @@ and open the template in the editor.
                         layout.cell('r_props2').attachHTML("<div></div>");
                         form.events.on("ButtonClick", function (id, e) {
                             if (id === "saveObject") {
+                                if (!form.validate()) {
+                                    alert("Fill fields correctly!");
+                                    return;
+                                }
                                 if (form.getValue().name) {
 //                                    if (tree.data.exists(form.getValue().name)){
 //                                        alert("Name of object is busy. Change name!");
@@ -293,6 +308,7 @@ and open the template in the editor.
                                     var objectModel = {};
                                     objectModel.objectType = tree.selection.getItem().id;
                                     objectModel.name = form.getValue().name;
+                                    objectModel.alias = form.getValue().alias;
 
                                     saveObject(objectModel, form);
                                 } else {
@@ -538,13 +554,16 @@ and open the template in the editor.
                         id: "fieldId",
                         type: "input",
                         label: "Id",
-                        placeholder: "Id"
+                        placeholder: "Id",
+                        required: true,
+                        validation: "alphanumeric"
                     },
                     {
                         id: "alias",
                         type: "input",
                         label: "Alias",
-                        placeholder: "Alias"
+                        placeholder: "Alias",
+                        required: true
                     },
                     {
                         id: "helpText",
@@ -701,6 +720,11 @@ and open the template in the editor.
                     if (id_btn === "saveField") {
                         if (form.getValue().fieldId.indexOf('edt_') === 0) {
                             alert("edt_ special prefix! Change field id!");
+                            return;
+                        }
+
+                        if (!form.validate()) {
+                            alert("Fill fields correctly!");
                             return;
                         }
                         if (form.getValue().fieldId && form.getValue().alias) {

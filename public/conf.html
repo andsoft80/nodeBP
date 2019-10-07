@@ -289,7 +289,7 @@ and open the template in the editor.
 //                                        alert("Name of object is busy. Change name!");
 //                                        return;
 //                                    }
-                                    
+
                                     var objectModel = {};
                                     objectModel.objectType = tree.selection.getItem().id;
                                     objectModel.name = form.getValue().name;
@@ -699,6 +699,10 @@ and open the template in the editor.
                     var newField = {edtType: {}};
 
                     if (id_btn === "saveField") {
+                        if (form.getValue().fieldId.indexOf('edt_') === 0) {
+                            alert("edt_ special prefix! Change field id!");
+                            return;
+                        }
                         if (form.getValue().fieldId && form.getValue().alias) {
                             if (form.getValue().type === "Extend" && !(form.getValue().objectType && form2.getValue().objectName)) {
                                 alert("Input all EDT fields!");

@@ -61,7 +61,9 @@ and open the template in the editor.
             var workSpaceHeight = $(window).height() - headerHeight - 200;
             var tabsWorkplace = {};
             var tabsLayouts = {};
-
+            var selCurrTreeItem = null;
+            var selCurrTreeItemName = null;
+            var editObject = null;
 
 //            window.addEventListener('resize', function (event) {
 //                workSpaceHeight = $(window).height() - headerHeight - 200;
@@ -222,6 +224,129 @@ and open the template in the editor.
             });
 
 //<--Main ToolBar////////////////////////////////////////////////////////////////
+            function showObjectProp(isNew) {
+
+                var titleP = "";
+                if (isNew) {
+                    titleP = "Create new of " + selCurrTreeItemName;
+                } else {
+                    titleP = "Edit of " + selCurrTreeItemName;
+                }
+                //alert(JSON.stringify(selCurrTreeItemName));
+                var rows = [
+                    {
+                        type: "text",
+                        //label: "text",
+                        //labelInline: true,
+                        value: titleP
+                    },
+                    {
+                        id: "name",
+                        type: "input",
+                        label: "Id",
+
+                        placeholder: "Object id",
+                        required: true,
+                        validation: "alphanumeric",
+                        disabled: !isNew
+                    },
+                    {
+                        id: "alias",
+                        type: "input",
+                        label: "Alias",
+
+                        placeholder: "Object alias",
+                        required: true
+
+                    }
+                ];
+
+                var rawsBtn = [
+                    {
+                        cols: [
+                            {
+                                type: "button",
+                                value: "Save",
+                                size: "medium",
+                                view: "flat",
+                                color: "primary",
+                                id: "saveObject"
+                            },
+                            {
+                                type: "button",
+                                value: "Cancel",
+                                size: "medium",
+                                view: "flat",
+                                color: "primary",
+                                id: "cancel"
+                            }
+                        ]}
+                ];
+                var form = new dhx.Form(null, {rows});
+                if (!isNew) {
+
+                    getObject(selCurrTreeItem, function (result) {
+                        form.setValue({name: selCurrTreeItemName, alias: result.alias});
+                        editObject = result;
+                    });
+                }
+                var formBtn = new dhx.Form(null, {rows: rawsBtn});
+                layout.cell('r_props').attach(form);
+                layout.cell('r_props2').attach(formBtn);
+                formBtn.events.on("ButtonClick", function (id, e) {
+                    if (id === "saveObject") {
+                        if (!form.validate()) {
+                            alert("Fill fields correctly!");
+                            return;
+                        }
+                        if (form.getValue().name && form.getValue().alias) {
+//                                    if (tree.data.exists(form.getValue().name)){
+//                                        alert("Name of object is busy. Change name!");
+//                                        return;
+//                                    }
+
+                            var objectModel = {};
+
+                            objectModel.name = form.getValue().name;
+                            objectModel.alias = form.getValue().alias;
+                            if (isNew) {
+                                objectModel.objectType = tree.selection.getItem().id;
+                                saveObject(objectModel, function (result) {
+                                    formBtn.destructor();
+                                    form.destructor();
+                                    if (result.status === 200) {
+                                        alert('Saved!');
+                                        loadTree(result.doc._id);
+                                    } else {
+                                        alert(JSON.stringify(result));
+                                    }
+                                });
+
+                            } else {
+                                objectModel.__v = editObject.__v + 1;
+                                objectModel._id = tree.selection.getItem().id;
+                                updateObject(objectModel, function (result) {
+                                    form.destructor();
+                                    formBtn.destructor();
+                                    if (result.status === 200) {
+                                        alert('Updated!');
+                                    } else {
+                                        alert(JSON.stringify(result));
+                                    }
+                                });
+                            }
+                        } else {
+                            alert("Input id and alias of object!");
+                        }
+                    }
+                    if (id === "cancel") {
+
+                        form.clear();
+                        form.destructor();
+                        formBtn.destructor();
+                    }
+                });
+            }
 //-->Sidebar ToolBar/////////////////////////////////////////////////////////////
 
             var toolbar = createSmallToolBar();
@@ -229,8 +354,8 @@ and open the template in the editor.
 
             toolbar.events.on("Click", function (id, e) {
 
-                var selCurrTreeItem = tree.selection.getId();
-                var selCurrTreeItemName = tree.selection.getItem().value;
+                selCurrTreeItem = tree.selection.getId();
+                selCurrTreeItemName = tree.selection.getItem().value;
 
 
                 if (selCurrTreeItem !== undefined) {
@@ -244,82 +369,7 @@ and open the template in the editor.
                             return;
                         }
                         //alert(JSON.stringify(selCurrTreeItemName));
-                        var rows = [
-                            {
-                                type: "text",
-                                //label: "text",
-                                //labelInline: true,
-                                value: "Create new of " + selCurrTreeItemName
-                            },
-                            {
-                                id: "name",
-                                type: "input",
-                                label: "Id",
-                                
-                                placeholder: "Object id",
-                                required: true,
-                                validation: "alphanumeric"
-                            },
-                            {
-                                id: "alias",
-                                type: "input",
-                                label: "Alias",
-                                
-                                placeholder: "Object alias",
-                                required: true
-                                
-                            },
-                            {
-                                cols: [
-                                    {
-                                        type: "button",
-                                        value: "Save",
-                                        size: "medium",
-                                        view: "flat",
-                                        color: "primary",
-                                        id: "saveObject"
-                                    },
-                                    {
-                                        type: "button",
-                                        value: "Cancel",
-                                        size: "medium",
-                                        view: "flat",
-                                        color: "primary",
-                                        id: "cancel"
-                                    }
-                                ]}
-
-                        ];
-                        var form = new dhx.Form(null, {rows});
-                        layout.cell('r_props').attach(form);
-                        layout.cell('r_props2').attachHTML("<div></div>");
-                        form.events.on("ButtonClick", function (id, e) {
-                            if (id === "saveObject") {
-                                if (!form.validate()) {
-                                    alert("Fill fields correctly!");
-                                    return;
-                                }
-                                if (form.getValue().name) {
-//                                    if (tree.data.exists(form.getValue().name)){
-//                                        alert("Name of object is busy. Change name!");
-//                                        return;
-//                                    }
-
-                                    var objectModel = {};
-                                    objectModel.objectType = tree.selection.getItem().id;
-                                    objectModel.name = form.getValue().name;
-                                    objectModel.alias = form.getValue().alias;
-
-                                    saveObject(objectModel, form);
-                                } else {
-                                    alert("Input name of object!");
-                                }
-                            }
-                            if (id === "cancel") {
-                                // layout.cell('rightbar').detach(form);
-                                form.destructor();
-                            }
-                        });
+                        showObjectProp(true);
                     }
                 }
             });
@@ -400,8 +450,11 @@ and open the template in the editor.
             layout.cell('s_tree').attach(tree);
 
             tree.events.on("itemClick", function (id, e) {
-                if (tree.data.getParent(id).indexOf("ROOT") == -1) {//second level and more...
 
+                selCurrTreeItem = id;
+                selCurrTreeItemName = tree.data.getItem(id).value;
+                if (tree.data.getParent(id).indexOf("ROOT") == -1) {//second level and more...
+                    showObjectProp(false);
                     if (!tabsWorkplace[id]) {//no Tab
 
                         tabbar.addCell({
@@ -519,7 +572,7 @@ and open the template in the editor.
 
                 getObject(objId, function (obj) {
                     obj.fields = fields;
-                    updateObject(obj, null, function (result) {
+                    updateObject(obj, function (result) {
 
                     });
 
@@ -531,14 +584,14 @@ and open the template in the editor.
 
                 getObject(objId, function (obj) {
                     obj.listForm = fields;
-                    updateObject(obj, null, function (result) {
+                    updateObject(obj, function (result) {
 
                     });
 
                 });
 
             }
-            function editField(data, list, field) {
+            function editField(data, list, listForm, field) {
 
                 var rows = [
 
@@ -715,6 +768,7 @@ and open the template in the editor.
                 layout.cell('r_props2').attach(form2);
                 form2.events.on("ButtonClick", function (id_btn, e) {
                     var fields = getFields(list);
+                    var fieldsList = getFields(listForm);
                     var newField = {edtType: {}};
 
                     if (id_btn === "saveField") {
@@ -762,14 +816,27 @@ and open the template in the editor.
                                             break;
                                         }
                                     }
+                                    for (var i = 0; i < fieldsList.length; i++) {
+                                        if (fieldsList[i].fieldId === newField.fieldId) {
+                                            fieldsList[i] = newField;
+                                            break;
+                                        }
+                                    }
+
                                 }
                                 objectModel.fields = fields;
+                                objectModel.listForm = fieldsList;
                                 //alert(JSON.stringify(newField));
                                 //alert(JSON.stringify(objectModel));
-                                updateObject(objectModel, null, function (dat) {
+                                updateObject(objectModel, function (result) {
                                     form.destructor();
                                     form2.destructor();
                                     loadFielsdList(list, data._id);
+                                    if (result.status === 200) {
+                                        alert('Updated!');
+                                    } else {
+                                        alert(JSON.stringify(result));
+                                    }
                                 });
 
                             }
@@ -899,7 +966,7 @@ and open the template in the editor.
                     if (_id === 'add') {
                         //alert('add');
 
-                        editField(data, list);
+                        editField(data, list, listForm);
 
                     }
                     ;
@@ -913,10 +980,25 @@ and open the template in the editor.
                     if (_id === 'delete') {
                         if (confirm("Delete field?")) {
                             var selid = list.selection.getId();
+                            var selItem = list.selection.getItem();
                             //var selid = list.getFocusItem();
                             if (selid) {
+
+                                var arr = [];
+                                listForm.data.map(function (item) {
+                                    //alert(JSON.stringify(item));
+                                    if (item.value.fieldId === selItem.value.fieldId) {
+                                        //listForm.data.remove(item.id);
+                                        arr.push(item);
+                                    }
+                                });
+
+                                for (var i = 0; i < arr.length; i++) {
+                                    listForm.data.remove(arr[i].id);
+                                }
                                 list.data.remove(selid);
                                 saveFields(data._id, list);
+                                saveFieldsListForm(data._id, listForm);
                             }
 
                             var selid = listForm.selection.getId();
@@ -957,7 +1039,7 @@ and open the template in the editor.
                 });
                 list.events.on("Click", function (_id, e) {
                     var item = list.data.getItem(_id);
-                    editField(data, list, item.value);
+                    editField(data, list, listForm, item.value);
                 });
 
                 ////<-- Fields tab

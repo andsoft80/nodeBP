@@ -297,11 +297,11 @@ function showListForm(id, mode, cb) {
             var field = object.listForm[i];
             var newField = {};
 
-            if (field.type === "String"||field.type === "Extend") {
-                newField.width  = 300;
+            if (field.type === "String" || field.type === "Extend") {
+                newField.width = 300;
                 //newField.maxWidth  = 350;
             } else {
-                newField.width  = 120;
+                newField.width = 120;
                 //newField.maxWidth  = 250;
             }
             if (field.type === 'Extend') {
@@ -331,9 +331,9 @@ function showListForm(id, mode, cb) {
             //data: dataset,
             selection: "complex",
             height: 300
-            
-            //columnsAutoWidth : true
-            //fitToContainer : true
+
+                    //columnsAutoWidth : true
+                    //fitToContainer : true
 
         });
 
@@ -350,7 +350,7 @@ function showListForm(id, mode, cb) {
                 var isEDT = false;
                 var edtField = {};
                 for (var i = 0; i < object.listForm.length; i++) {
-                    if ("edt_"+object.listForm[i].fieldId === column.id && object.listForm[i].type === "Extend") {
+                    if ("edt_" + object.listForm[i].fieldId === column.id && object.listForm[i].type === "Extend") {
                         isEDT = true;
                         edtField = object.listForm[i];
                         break;
@@ -383,7 +383,7 @@ function showListForm(id, mode, cb) {
                             var edtData = edtField.edtType;
                             showListForm(edtData.objectId, true, function (data) {
                                 selectItem[column.id] = data.name;
-                                selectItem[column.id.replace("edt_","")] = data.id;
+                                selectItem[column.id.replace("edt_", "")] = data.id;
                                 //selectItem[column.id].title = 'mama';
                                 grid.paint();
                                 toolbar.events.fire("Click", ["save"]);
@@ -471,7 +471,7 @@ function showListForm(id, mode, cb) {
 
 //-->Meta/////////////////////////////////////////////////////////////////////
 
-function saveObject(objectModel, callform) {
+function saveObject(objectModel, cb) {
     $.ajax({
         type: "post",
         //async: false,
@@ -479,13 +479,8 @@ function saveObject(objectModel, callform) {
         //headers: {"Access-Control-Allow-Origin": "*"},
         data: objectModel,
         success: function (data) {
-            if (data.status === 200) {
-                alert('Saved!');
-                callform.destructor();
-                loadTree(data.doc._id);
-            } else {
-                alert(data);
-            }
+            cb(data);
+
 
         }
     });
@@ -508,8 +503,8 @@ function getObject(id, promise) {
 
 }
 ;
-function updateObject(objectModel, callform, promise) {
-    objectModel.__v++;
+function updateObject(objectModel,  cb) {
+    //objectModel.__v++;
     objectModel.changed = true;
     $.ajax({
         type: "put",
@@ -521,13 +516,8 @@ function updateObject(objectModel, callform, promise) {
 //                    dataType: 'json',
         contentType: 'application/json',
         success: function (data) {
-            promise(data);
-            if (data.status === 200) {
-                //alert('Updated!');
-                callform.destructor();
-            } else {
-                alert(data);
-            }
+            cb(data);
+
 
 
         }

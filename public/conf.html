@@ -1108,7 +1108,10 @@ and open the template in the editor.
             tabbar.events.on("Close", function (id) {
                 tabsWorkplace[id] = false;
                 tabsLayouts[id] = null;
-                tabbar.setActive(tabbar.setActive(tabbar.getId(0)));
+
+                
+                tabbar.setActive(tabbar.getId(0))
+
 
             });
             layout.cell('content').attach(tabbar);

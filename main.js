@@ -13,7 +13,7 @@ mongoose.connect('mongodb://localhost/bp', {useNewUrlParser: true}, function (er
     console.log('Successfully connected to Mongo');
 
 });
-
+mongoose.set('useFindAndModify', false);
 var app = express();
 app.use(express.static('public'));
 app.use(express.static('modules'));
@@ -205,6 +205,48 @@ app.put('/metadata', function (req, res) {
         console.log(JSON.stringify(result));
         res.send({"status": 200, "result": result});
     });
+
+
+});
+
+app.delete('/metadata/:id', function (req, res) {
+    var free = true;
+
+    var query = MetaData.find({});
+    query.exec(function (err, docs) {
+        if (err)
+        {
+            res.end(JSON.stringify(err));
+            return;
+        }
+        var arr = [];
+        for (var i = 0; i < docs.length; i++) {
+            for (var j = 0; j < docs[i].fields.length; j++) {
+                if (docs[i].fields[j].edtType) {
+                    if (docs[i].fields[j].edtType.objectId === req.params.id) {
+                        arr.push(docs[i].name);
+                        free = false;
+                    }
+                }
+            }
+        }
+        if (free) {
+            var query1 = MetaData.findOneAndRemove({"_id": req.params.id});
+            query1.exec(function (err, result) {
+                if (err)
+                {
+                    res.end(JSON.stringify(err));
+                    return;
+                }
+                res.send({"status": 200, "result": result});
+            });
+        } else {
+            res.send({"status": 500, "result": JSON.stringify(arr)});
+        }
+
+
+    });
+
 
 
 });
@@ -726,8 +768,8 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 
                     var extData = doc.listForm[i].edtType;
                     var edtTableName = extData.objectName;
-                    lj = lj + " left join " + edtTableName + " as t" +i+" on t" + i + "._id = " + tableName + "." + doc.listForm[i].fieldId;
-                    sqlStr = sqlStr + "t"+i + ".name as edt_" + doc.listForm[i].fieldId + ",";
+                    lj = lj + " left join " + edtTableName + " as t" + i + " on t" + i + "._id = " + tableName + "." + doc.listForm[i].fieldId;
+                    sqlStr = sqlStr + "t" + i + ".name as edt_" + doc.listForm[i].fieldId + ",";
                 }
 //                else {
 //                    sqlStr = sqlStr + tableName+"."+doc.listForm[i].fieldId + ","
@@ -774,6 +816,29 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 
             //console.log(JSON.stringify(columns));
             res.end(JSON.stringify(result));
+            //con.destroy();
+        });
+
+
+    }
+
+    if (action === 'drop_table') {
+
+        var resBE = {};
+        sqlStr = "DROP table " + tableName;
+        con.query(sqlStr, function (err, result) {
+            if (err) {
+                resBE.status = 500;
+                resBE.result = JSON.stringify(err);
+                res.end(JSON.stringify(resBE));
+            }
+
+
+
+            //console.log(JSON.stringify(columns));
+            resBE.status = 200;
+            resBE.result = JSON.stringify(result);
+            res.end(JSON.stringify(resBE));
             //con.destroy();
         });
 

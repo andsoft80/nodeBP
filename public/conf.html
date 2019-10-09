@@ -364,12 +364,57 @@ and open the template in the editor.
 
                     if (id === "add") {
 
-                        if (tree.data.getParent(selCurrTreeItem).indexOf("ROOT") == -1) {//second level and more...
+                        if (tree.data.getParent(selCurrTreeItem).indexOf("ROOT") === -1) {//second level and more...
                             alert('Select first level!');
                             return;
                         }
                         //alert(JSON.stringify(selCurrTreeItemName));
                         showObjectProp(true);
+                    }
+                    if (id === "delete") {
+                        if (tree.data.getParent(selCurrTreeItem).indexOf("ROOT") === -1) {//second level and more...
+                            if (confirm("Delete object?")) {
+                                $.ajax({
+                                    type: "delete",
+                                    //async: false,
+                                    url: '/metadata/' + selCurrTreeItem,
+                                    //headers: {"Access-Control-Allow-Origin": "*"},
+
+                                    success: function (data) {
+                                        if (data.status === 200) {
+
+
+
+                                            //tabbar.events.fire("Close",selCurrTreeItem);
+                                            $.ajax({
+                                                type: "post",
+                                                //async: false,
+                                                url: "/table/" + selCurrTreeItemName + "/action/drop_table",
+                                                //headers: {"Access-Control-Allow-Origin": "*"},
+
+                                                success: function (data) {
+                                                    //if (JSON.parse(data).status === 200) {
+                                                    alert('Done!');
+                                                    tree.data.remove(selCurrTreeItem);
+                                                    layout.cell('r_props').attachHTML("<div></did>");
+                                                    layout.cell('r_props2').attachHTML("<div></did>");
+                                                    tabbar.removeCell(selCurrTreeItem);
+//                                                    } else {
+//                                                        alert(JSON.parse(data).result);
+//                                                    }
+
+                                                }
+                                            });
+
+
+                                        } else {
+                                            alert("Object cannot be removed! There are links on it in next objects : " + data.result);
+                                        }
+
+                                    }
+                                });
+                            }
+                        }
                     }
                 }
             });
@@ -399,6 +444,7 @@ and open the template in the editor.
                                 tree.data.add({value: data.name, id: id}, 0, objType);
                             }
                         } else {//all tree
+
                             for (i = 0; i < data.length; i++) {
                                 var object = data[i];
                                 tree.data.add({value: object.name, id: object._id}, 0, object.objectType);
@@ -1050,7 +1096,7 @@ and open the template in the editor.
             var tabbar = new dhx.Tabbar(null, {
                 closeButtons: true,
                 views: [
-                    {tab: "left", tabCss: "dn"}
+                    {tab: "left", tabCss: "dn"}//transparent hide
 
 
                 ]

@@ -548,9 +548,10 @@ and open the template in the editor.
                 var tabbarObjConf = new dhx.Tabbar(null, {
                     closeButtons: false,
                     mode: "top",
-                    tabWidth: 100,
+                    tabWidth: 150,
                     views: [
                         {tab: "Fields", id: "fields"},
+                        {tab: "Table Parts", id: "tableParts"},
                         {tab: "Forms", id: "forms"},
                         {tab: "Code", id: "code"}
                     ]
@@ -572,6 +573,7 @@ and open the template in the editor.
 
                     success: function (data) {
                         createFieldTab(tabbarObjConf, data);
+                        createFormsTab(tabbarObjConf, data);
 
                     }
                 });
@@ -953,6 +955,26 @@ and open the template in the editor.
                 layout.cell('r_props2').attach(form);
 
             }
+            function createFormsTab(tabbarObjConf, data) {
+                var layoutObjConfContentForms = new dhx.Layout(null, {
+
+                    rows: [
+                        {id: "toolBar"},
+                        {cols: [
+                                {id: "dataStructure", header: "Fields & Tables", width: 300, gravity: false,
+                                    css: "dhx_layout-cell--border_right", resizable: true, height: "500px", collapsable: true,
+                                    //rows: [{id: "main"}]
+                                },
+                                
+                                {id: "formEditor", header: "Form Editor", gravity: false, resizable: true, 
+                                    css: "dhx_layout-cell--border_left",height: "500px",
+                                    //rows: [{id: "form"}]
+                                }
+                            ]}
+                    ]
+                });
+                tabbarObjConf.cell('forms').attach(layoutObjConfContentForms);
+            }
             function createFieldTab(tabbarObjConf, data) {
                 /////--> Fields tab
 
@@ -1109,7 +1131,7 @@ and open the template in the editor.
                 tabsWorkplace[id] = false;
                 tabsLayouts[id] = null;
 
-                
+
                 tabbar.setActive(tabbar.getId(0))
 
 

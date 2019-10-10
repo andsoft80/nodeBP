@@ -78,29 +78,38 @@ and open the template in the editor.
 
             });
             function createSmallToolBar() {
-                var toolbar = new dhx.Toolbar(null);
+                var toolbar = new dhx.Toolbar(null, {css: "dhx_widget--bordered "});
                 var data = [
                     {
                         type: "button",
                         icon: "dxi-plus",
-                        size: "small",
+                        //size: "small",
                         value: "",
-                        id: 'add'
+                        id: 'add',
+                        "view": "link",
+                        "color": "secondary",
+                        tooltip:"Add item"
                     },
 
                     {
                         type: "button",
                         icon: "dxi-vault",
-                        size: "small",
+                        //size: "small",
                         value: "",
-                        id: 'save'
+                        id: 'save',
+                        "view": "link",
+                        "color": "secondary",
+                        tooltip:"Save item"
                     },
                     {
                         type: "button",
                         icon: "dxi-delete",
-                        size: "small",
+                        //size: "small",
                         value: "",
-                        id: 'delete'
+                        id: 'delete',
+                        "view": "link",
+                        "color": "secondary",
+                        tooltip:"Delete item"
                     }
                 ];
                 toolbar.data.parse(data);
@@ -126,10 +135,11 @@ and open the template in the editor.
                                 gravity: false,
                                 css: "dhx_layout-cell--border_right",
                                 resizable: true,
-                                width: "200px",
+                                width: "220px",
                                 rows: [
                                     {
-                                        id: "s_toolbar"
+                                        id: "s_toolbar",
+                                        height: "90px"
                                     },
                                     {
                                         id: "s_tree"
@@ -441,13 +451,13 @@ and open the template in the editor.
                                 objType = data.objectType;
 
 
-                                tree.data.add({value: data.name, id: id}, 0, objType);
+                                tree.data.add({value: data.name, id: id}, tree.data.getItems(objType).length, objType);
                             }
                         } else {//all tree
 
                             for (i = 0; i < data.length; i++) {
                                 var object = data[i];
-                                tree.data.add({value: object.name, id: object._id}, 0, object.objectType);
+                                tree.data.add({value: object.name, id: object._id}, tree.data.getItems(object.objectType).length, object.objectType);
                             }
 
                         }
@@ -552,7 +562,7 @@ and open the template in the editor.
                     views: [
                         {tab: "Fields", id: "fields"},
                         {tab: "Table Parts", id: "tableParts"},
-                        {tab: "Forms", id: "forms"},
+                        {tab: "Form", id: "forms"},
                         {tab: "Code", id: "code"}
                     ]
 
@@ -573,7 +583,7 @@ and open the template in the editor.
 
                     success: function (data) {
                         createFieldTab(tabbarObjConf, data);
-                        createFormsTab(tabbarObjConf, data);
+                        createFormTab(tabbarObjConf, data);
 
                     }
                 });
@@ -955,25 +965,80 @@ and open the template in the editor.
                 layout.cell('r_props2').attach(form);
 
             }
-            function createFormsTab(tabbarObjConf, data) {
+            function createFormTab(tabbarObjConf, data) {
+                //alert(layout.cell('content'));
+
                 var layoutObjConfContentForms = new dhx.Layout(null, {
 
                     rows: [
-                        {id: "toolBar"},
+//                        {id: "toolBar"},
                         {cols: [
-                                {id: "dataStructure", header: "Fields & Tables", width: 300, gravity: false,
-                                    css: "dhx_layout-cell--border_right", resizable: true, height: "500px", collapsable: true,
-                                    //rows: [{id: "main"}]
+                                {id: "dataStructure", header: "Fields & Tables", width: 250, gravity: false,
+                                    css: "dhx_layout-cell--border_right", resizable: false, height: "700px", collapsable: true,
+                                    rows: [
+                                        {
+                                            id: "toolBarData",
+                                            height: "80px",
+                                            gravity: false
+                                        },
+                                        {
+                                            id: "contentData",
+                                            gravity: false
+                                        }
+                                    ]
+
                                 },
-                                
-                                {id: "formEditor", header: "Form Editor", gravity: false, resizable: true, 
-                                    css: "dhx_layout-cell--border_left",height: "500px",
-                                    //rows: [{id: "form"}]
+                                {id: "formStructure", header: "Form Tree", width: 250, gravity: false,
+                                    css: "dhx_layout-cell--border_right", resizable: false, height: "700px", collapsable: true,
+                                    rows: [
+                                        {
+                                            id: "toolBar",
+                                            height: "80px",
+                                            gravity: false
+                                        },
+                                        {
+                                            id: "content",
+                                            gravity: false
+                                        }
+                                    ]
+
+                                },
+
+                                {id: "formEditor", header: "Form Preview", gravity: true, resizable: true,
+                                    //css: "dhx_layout-cell--border_left",
+                                    height: "700px",
+
                                 }
                             ]}
                     ]
                 });
+
                 tabbarObjConf.cell('forms').attach(layoutObjConfContentForms);
+                var treeData = new dhx.Tree(null, {keyNavigation: true, dragMode: "source"});
+                treeData.data.add({
+                    type: "button",
+                    icon: "dxi-plus",
+                    value: "Fields",
+                    id: "fields",
+                    tooltip: "mama"
+                }, 1);
+                treeData.data.add({
+                    type: "button",
+                    icon: "dxi-plus",
+                    value: "Table parts",
+                    id: "tableParts"
+                }, 2);
+
+
+                for (var i = 0; i < data.fields.length; i++) {
+
+                    treeData.data.add({value: data.fields[i].fieldId, id: data.fields[i].fieldId}, treeData.data.getItems("fields").length, "fields");
+                }
+
+                var toolBar = createSmallToolBar();
+                layoutObjConfContentForms.cell('toolBar').attach(toolBar);
+                layoutObjConfContentForms.cell('contentData').attach(treeData);
+
             }
             function createFieldTab(tabbarObjConf, data) {
                 /////--> Fields tab

@@ -330,7 +330,7 @@ function showListForm(id, mode, cb) {
             rowHeight: rh + 2,
             //data: dataset,
             selection: "complex",
-            height: 300
+            //height: 200,
 
                     //columnsAutoWidth : true
                     //fitToContainer : true
@@ -342,10 +342,11 @@ function showListForm(id, mode, cb) {
         grid.events.on("CellDblClick", function (row, column, e) {
             selectItem = row;
             selectCol = column;
+            editCell.r = row.id;
+            editCell.c = column.id;
             //alert(row.id+" "+column.id);
             if (!mode) {
-                editCell.r = row.id;
-                editCell.c = column.id;
+
                 grid.edit(row.id, column.id);
                 var isEDT = false;
                 var edtField = {};
@@ -358,8 +359,10 @@ function showListForm(id, mode, cb) {
                 }
                 if (isEDT) {
 
-                    if ($(".dhx_grid-body")[0].getBoundingClientRect().x + $(".dhx_grid-body")[0].getBoundingClientRect().width >= e.target.getBoundingClientRect().x + e.target.getBoundingClientRect().width) {
-                        //var rect = grid.getCellRect(row.id, column.id);
+                    //if ($(".dhx_grid-body")[0].getBoundingClientRect().x + $(".dhx_grid-body")[0].getBoundingClientRect().width >= e.target.getBoundingClientRect().x + e.target.getBoundingClientRect().width) {
+                    //var rect = grid.getCellRect(row.id, column.id);
+                    if (true) {
+
                         var rect = null;
                         //alert(e.target.parentNode.className);
                         if (e.target.parentNode.className.indexOf('dhx_grid-cell') > -1) {
@@ -379,6 +382,7 @@ function showListForm(id, mode, cb) {
                         btn.style.position = 'absolute';
                         btn.style.height = btn.style.width = rh + 'px';
                         f.appendChild(btn);
+
                         btn.onclick = function () {
                             var edtData = edtField.edtType;
                             showListForm(edtData.objectId, true, function (data) {
@@ -386,6 +390,7 @@ function showListForm(id, mode, cb) {
                                 selectItem[column.id.replace("edt_", "")] = data.id;
                                 //selectItem[column.id].title = 'mama';
                                 grid.paint();
+                                
                                 toolbar.events.fire("Click", ["save"]);
 
                             })
@@ -403,21 +408,22 @@ function showListForm(id, mode, cb) {
             }
         });
         grid.events.on("AfterEditEnd", function (value, row, column) {
-            selectItem = row;
-            selectCol = column;
+//            selectItem = row;
+//            selectCol = column;
 
         });
         grid.events.on("CellClick", function (row, column, e) {
             selectItem = row;
             selectCol = column;
             if (row.id != editCell.r | column.id != editCell.c) {
+                
                 $('#editButton').remove();
             }
 
         });
 
         $(".dhx_grid-body").on('scroll', function () {
-            $('#editButton').remove();
+            //$('#editButton').remove();
         });
 
         $(".dhx_grid-header-cell").click(function () {
@@ -453,6 +459,7 @@ function showListForm(id, mode, cb) {
             } else {
 
                 dhxWindow.setSize(restore.width, restore.height);
+                
 
             }
             toFull = !toFull;
@@ -503,7 +510,7 @@ function getObject(id, promise) {
 
 }
 ;
-function updateObject(objectModel,  cb) {
+function updateObject(objectModel, cb) {
     //objectModel.__v++;
     objectModel.changed = true;
     $.ajax({

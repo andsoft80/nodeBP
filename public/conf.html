@@ -87,7 +87,7 @@ and open the template in the editor.
                         value: "",
                         id: 'add',
                         "view": "link",
-                        "color": "secondary",
+                        //"color": "secondary",
                         tooltip:"Add item"
                     },
 
@@ -98,7 +98,7 @@ and open the template in the editor.
                         value: "",
                         id: 'save',
                         "view": "link",
-                        "color": "secondary",
+                        //"color": "secondary",
                         tooltip:"Save item"
                     },
                     {
@@ -108,7 +108,7 @@ and open the template in the editor.
                         value: "",
                         id: 'delete',
                         "view": "link",
-                        "color": "secondary",
+                        //"color": "secondary",
                         tooltip:"Delete item"
                     }
                 ];
@@ -969,6 +969,7 @@ and open the template in the editor.
                 //alert(layout.cell('content'));
 
                 var layoutObjConfContentForms = new dhx.Layout(null, {
+                    
 
                     rows: [
 //                        {id: "toolBar"},
@@ -1036,7 +1037,23 @@ and open the template in the editor.
                 }
 
                 var toolBar = createSmallToolBar();
+                var toolBarData = createSmallToolBar();
+                toolBarData.data.remove("add");
+                toolBarData.data.remove("save");
+                toolBarData.data.remove("delete");
+                toolBarData.data.add({
+                        type: "button",
+                        icon: "fa fa-retweet",
+                        //size: "small",
+                        value: "",
+                        id: 'refrash',
+                        "view": "link",
+                        //"color": "secondary",
+                        tooltip:"Refrash items"
+                    },);
+                
                 layoutObjConfContentForms.cell('toolBar').attach(toolBar);
+                layoutObjConfContentForms.cell('toolBarData').attach(toolBarData);
                 layoutObjConfContentForms.cell('contentData').attach(treeData);
 
             }

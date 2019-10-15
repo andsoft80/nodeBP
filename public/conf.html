@@ -88,7 +88,7 @@ and open the template in the editor.
                         id: 'add',
                         "view": "link",
                         //"color": "secondary",
-                        tooltip:"Add item"
+                        tooltip: "Add item"
                     },
 
                     {
@@ -99,7 +99,7 @@ and open the template in the editor.
                         id: 'save',
                         "view": "link",
                         //"color": "secondary",
-                        tooltip:"Save item"
+                        tooltip: "Save item"
                     },
                     {
                         type: "button",
@@ -109,7 +109,7 @@ and open the template in the editor.
                         id: 'delete',
                         "view": "link",
                         //"color": "secondary",
-                        tooltip:"Delete item"
+                        tooltip: "Delete item"
                     }
                 ];
                 toolbar.data.parse(data);
@@ -969,7 +969,6 @@ and open the template in the editor.
                 //alert(layout.cell('content'));
 
                 var layoutObjConfContentForms = new dhx.Layout(null, {
-                    
 
                     rows: [
 //                        {id: "toolBar"},
@@ -1015,7 +1014,7 @@ and open the template in the editor.
                 });
 
                 tabbarObjConf.cell('forms').attach(layoutObjConfContentForms);
-                var treeData = new dhx.Tree(null, {keyNavigation: true, dragMode: "source"});
+                var treeData = new dhx.Tree(null, {keyNavigation: true, dragMode: "source", dragCopy: true});
                 treeData.data.add({
                     type: "button",
                     icon: "dxi-plus",
@@ -1031,6 +1030,17 @@ and open the template in the editor.
                 }, 2);
 
 
+                
+                var treeForm = new dhx.Tree(null, {keyNavigation: true, dragMode: "target"});
+                treeForm.data.add({
+                    type: "button",
+                    icon: "dxi-plus",
+                    value: "Form Layout",
+                    id: "root",
+                    tooltip: "mama"
+                }, 1);
+
+
                 for (var i = 0; i < data.fields.length; i++) {
 
                     treeData.data.add({value: data.fields[i].fieldId, id: data.fields[i].fieldId}, treeData.data.getItems("fields").length, "fields");
@@ -1042,21 +1052,23 @@ and open the template in the editor.
                 toolBarData.data.remove("save");
                 toolBarData.data.remove("delete");
                 toolBarData.data.add({
-                        type: "button",
-                        icon: "fa fa-retweet",
-                        //size: "small",
-                        value: "",
-                        id: 'refrash',
-                        "view": "link",
-                        //"color": "secondary",
-                        tooltip:"Refrash items"
-                    },);
-                
+                    type: "button",
+                    icon: "fa fa-retweet",
+                    //size: "small",
+                    value: "",
+                    id: 'refrash',
+                    "view": "link",
+                    //"color": "secondary",
+                    tooltip: "Refrash items"
+                }, );
+
                 layoutObjConfContentForms.cell('toolBar').attach(toolBar);
                 layoutObjConfContentForms.cell('toolBarData').attach(toolBarData);
                 layoutObjConfContentForms.cell('contentData').attach(treeData);
+                layoutObjConfContentForms.cell('content').attach(treeForm);
 
             }
+
             function createFieldTab(tabbarObjConf, data) {
                 /////--> Fields tab
 

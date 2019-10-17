@@ -1036,14 +1036,14 @@ and open the template in the editor.
                     type: "button",
                     icon: "dxi-plus",
                     value: "Form Layout",
-                    id: "root",
-                    tooltip: "mama"
+                    id: "cell_root"
+                    
                 }, 1);
                 treeForm.events.on("beforedrop", function (id, dropPos) {
 
                     //target
-                    //alert(id+" "+dropPos);
-                    if(id.indexOf('fld_')===0){
+                    alert(id+" "+JSON.stringify(dropPos.id));
+                    if(id.indexOf('form_')===0){
                         return false;
                     }
                     

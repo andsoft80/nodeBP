@@ -1030,7 +1030,7 @@ and open the template in the editor.
                 }, 2);
 
 
-                
+
                 var treeForm = new dhx.Tree(null, {keyNavigation: true, dragMode: "target"});
                 treeForm.data.add({
                     type: "button",
@@ -1039,11 +1039,20 @@ and open the template in the editor.
                     id: "root",
                     tooltip: "mama"
                 }, 1);
+                treeForm.events.on("beforedrop", function (id, dropPos) {
 
+                    //target
+                    //alert(id+" "+dropPos);
+                    if(id.indexOf('fld_')===0){
+                        return false;
+                    }
+                    
+
+                })
 
                 for (var i = 0; i < data.fields.length; i++) {
 
-                    treeData.data.add({value: data.fields[i].fieldId, id: data.fields[i].fieldId}, treeData.data.getItems("fields").length, "fields");
+                    treeData.data.add({value: data.fields[i].fieldId, id: 'fld_'+data.fields[i].fieldId}, treeData.data.getItems("fields").length, "fields");
                 }
 
                 var toolBar = createSmallToolBar();

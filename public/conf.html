@@ -965,9 +965,47 @@ and open the template in the editor.
                 layout.cell('r_props2').attach(form);
 
             }
+            function uuidv4() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+            function createValidControlList(id) {
+                var controlList = [];
+                if (id.indexOf("cell_") === 0) {
+                    controlList = [];
+                    controlList.push({id: "html", value: "HTML Block"});
+                    controlList.push({id: "form", value: "Form"});
+                    controlList.push({id: "rows", value: "Rows section"});
+                    controlList.push({id: "cols", value: "Columns section"});
+
+                }
+                if (id.indexOf("form_") === 0) {
+                    controlList = [];
+                    controlList.push({id: "nextCol", value: "Next column"});
+                    controlList.push({id: "groupFields", value: "Group fields"});
+
+
+                }
+                if (id.indexOf("rows_") === 0) {
+                    controlList = [];
+                    controlList.push({id: "row", value: "Row cell"});
+
+
+                }
+                if (id.indexOf("cols_") === 0) {
+                    controlList = [];
+                    controlList.push({id: "col", value: "Column cell"});
+
+
+                }
+                return controlList;
+            }
             function createFormTab(tabbarObjConf, data) {
                 //alert(layout.cell('content'));
-
+                var dragId = null;
+                var dragName = null;
                 var layoutObjConfContentForms = new dhx.Layout(null, {
 
                     rows: [
@@ -1031,28 +1069,57 @@ and open the template in the editor.
 
 
 
-                var treeForm = new dhx.Tree(null, {keyNavigation: true, dragMode: "target"});
+                var treeForm = new dhx.Tree(null, {keyNavigation: true, dragMode: "target", dropBehaviour: "child"});
                 treeForm.data.add({
                     type: "button",
                     icon: "dxi-plus",
                     value: "Form Layout",
                     id: "cell_root"
-                    
+
                 }, 1);
+
+                treeData.events.on("dragstart", function (id, ids) {
+
+                    //target
+                    dragId = id;
+                    dragName = treeData.data.getItem(id).value;
+
+
+
+                });
                 treeForm.events.on("beforedrop", function (id, dropPos) {
 
                     //target
-                    alert(id+" "+JSON.stringify(dropPos.id));
-                    if(id.indexOf('form_')===0){
+                    //alert(id + " " + dragId);
+                    if (id.indexOf('form_') !== 0 && id.indexOf('nc_') !== 0 && id.indexOf('gf_') !== 0 && dragId.indexOf('fld_') === 0) {
+                        alert("Fields can add in form only!");
                         return false;
                     }
-                    
+                    treeForm.data.add({value: dragName, id: dragId}, treeForm.data.getItems(id).length, id);
+                    return false;
 
-                })
+                });
+
+                treeForm.events.on("itemClick", function (id, e) {
+                    //toolBar.data.getItem('add').items = createValidControlList(id);
+                    toolBar.data.remove("add");
+                    toolBar.data.add({
+                        type: "navItem",
+                        icon: "dxi-plus",
+                        //size: "small",
+                        value: "Add",
+                        id: 'add',
+                        "view": "link",
+                        //"color": "secondary",
+                        tooltip: "Add element",
+                        items: createValidControlList(id)
+                    }, 0);
+
+                });
 
                 for (var i = 0; i < data.fields.length; i++) {
 
-                    treeData.data.add({value: data.fields[i].fieldId, id: 'fld_'+data.fields[i].fieldId}, treeData.data.getItems("fields").length, "fields");
+                    treeData.data.add({value: data.fields[i].fieldId, id: 'fld_' + data.fields[i].fieldId}, treeData.data.getItems("fields").length, "fields");
                 }
 
                 var toolBar = createSmallToolBar();
@@ -1071,10 +1138,49 @@ and open the template in the editor.
                     tooltip: "Refrash items"
                 }, );
 
+                toolBar.data.remove("add");
+                toolBar.data.add({
+                    type: "navItem",
+                    icon: "dxi-plus",
+                    //size: "small",
+                    value: "Add",
+                    id: 'add',
+                    "view": "link",
+                    //"color": "secondary",
+                    tooltip: "Add element",
+                    items: []
+                }, 0);
+
                 layoutObjConfContentForms.cell('toolBar').attach(toolBar);
                 layoutObjConfContentForms.cell('toolBarData').attach(toolBarData);
                 layoutObjConfContentForms.cell('contentData').attach(treeData);
                 layoutObjConfContentForms.cell('content').attach(treeForm);
+                toolBar.events.on("Click", function (id, e) {
+                    if (id === 'form') {
+                        treeForm.data.add({value: "Form", id: 'form_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+                    if (id === 'nextCol') {
+                        treeForm.data.add({value: "Next Column", id: 'nc_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+                    if (id === 'groupFields') {
+                        treeForm.data.add({value: "Field's Group", id: 'gf_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+                    if (id === 'rows') {
+                        treeForm.data.add({value: "Rows section", id: 'rows_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+                    if (id === 'cols') {
+                        treeForm.data.add({value: "Columns section", id: 'cols_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+                    if (id === 'row') {
+                        treeForm.data.add({value: "Row Cell section", id: 'cell_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+                    if (id === 'col') {
+                        treeForm.data.add({value: "Column Cell section", id: 'cell_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+                    if (id === 'html') {
+                        treeForm.data.add({value: "HTML block", id: 'html_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+                });
 
             }
 

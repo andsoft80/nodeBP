@@ -853,5 +853,32 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 });
 
 //////////////////////////////////////////////
+function parseObj(obj){
+    
+}
+
+app.get('/formrender/:id', function (req, res) {
+    var code = "";
+    var layout_struct = {};
+    
+    var query = MetaData.findById(req.params.id);
+    query.exec(function (err, doc) {
+        if (err)
+        {
+            res.end(JSON.stringify(err));
+            return;
+        }
+        
+        var structure = doc.elementForm;
+        
+        code += "var mainLayout = new dhx.Layout(null, "+JSON.stringify(layout_struct)+");\n";
+        
+        res.send(code);
+    });
+
+
+
+
+});
 
 

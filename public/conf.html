@@ -973,6 +973,13 @@ and open the template in the editor.
             }
             function createValidControlList(id) {
                 var controlList = [];
+                if (id.indexOf("root_") === 0) {
+                    controlList = [];
+                    controlList.push({id: "rows", value: "Rows section"});
+                    controlList.push({id: "cols", value: "Columns section"});
+
+                }
+
                 if (id.indexOf("cell_") === 0) {
                     controlList = [];
                     controlList.push({id: "html", value: "HTML Block"});
@@ -1074,9 +1081,16 @@ and open the template in the editor.
                     type: "button",
                     icon: "dxi-plus",
                     value: "Form Layout",
-                    id: "cell_root"
+                    id: "root_cell"
 
                 }, 1);
+
+                getObject(data._id, function (cb_data) {
+                    if (cb_data.elementForm.length > 0) {
+                        var str = JSON.stringify(cb_data.elementForm).split('dollar_').join('$');
+                        treeForm.data.parse(str);
+                    }
+                })
 
                 treeData.events.on("dragstart", function (id, ids) {
 
@@ -1095,7 +1109,14 @@ and open the template in the editor.
                         alert("Fields can add in form only!");
                         return false;
                     }
+
+                    var state = treeForm.getState();
+                    if (state[dragId]) {
+                        alert("Field " + dragName + " already exist!");
+                        return false;
+                    }
                     treeForm.data.add({value: dragName, id: dragId}, treeForm.data.getItems(id).length, id);
+                    treeForm.openAll();
                     return false;
 
                 });
@@ -1180,6 +1201,40 @@ and open the template in the editor.
                     if (id === 'html') {
                         treeForm.data.add({value: "HTML block", id: 'html_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
                     }
+
+
+                    if (id === 'save') {
+                        var structure = treeForm.data.serialize();
+
+                        //treeForm.data.parse(structure);
+                        getObject(data._id, function (result) {
+                            var str = JSON.stringify(structure);
+                            //var newstr = str.replace(/$/g,"dollar_");
+                            var newstr = str.split('$').join('dollar_');
+
+                            result.elementForm = JSON.parse(newstr);
+
+                            //alert(JSON.stringify(result.elementForm));
+                            updateObject(result, function (cb_data) {
+                                alert("Done!");
+                            })
+
+                        });
+
+
+                    }
+                    ;
+                    if (id === 'delete') {
+                        if (treeForm.selection.getId()) {
+                            if (confirm("Delete item?")) {
+                                treeForm.data.remove(treeForm.selection.getId());
+                            }
+                        } else {
+                            alert("Select item!");
+                        }
+                    }
+                    treeForm.openAll();
+
                 });
 
             }

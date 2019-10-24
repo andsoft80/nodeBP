@@ -1089,6 +1089,7 @@ and open the template in the editor.
                     if (cb_data.elementForm.length > 0) {
                         var str = JSON.stringify(cb_data.elementForm).split('dollar_').join('$');
                         treeForm.data.parse(str);
+                        
                     }
                 })
 
@@ -1158,7 +1159,15 @@ and open the template in the editor.
                     //"color": "secondary",
                     tooltip: "Refrash items"
                 }, );
-
+                toolBarData.data.add({
+                    type: "button",
+                    icon: "dxi-chevron-right",
+                    //size: "small",
+                    value: "",
+                    "view": "link",
+                    id: 'start',
+                    tooltip: "Render preview"
+                });
                 toolBar.data.remove("add");
                 toolBar.data.add({
                     type: "navItem",
@@ -1204,6 +1213,7 @@ and open the template in the editor.
 
 
                     if (id === 'save') {
+                        treeForm.selection.remove(treeForm.selection.getId());
                         var structure = treeForm.data.serialize();
 
                         //treeForm.data.parse(structure);
@@ -1234,6 +1244,24 @@ and open the template in the editor.
                         }
                     }
                     treeForm.openAll();
+
+                });
+
+                toolBarData.events.on("Click", function (id, e) {
+                    if (id === 'start') {
+                        $.ajax({
+                            type: "get",
+                            async: false,
+                            url: "/formrender/" + data._id,
+                            //headers: {"Access-Control-Allow-Origin": "*"},
+
+                            success: function (data) {
+                                alert(data);
+
+
+                            }
+                        });
+                    }
 
                 });
 

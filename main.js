@@ -853,14 +853,68 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 });
 
 //////////////////////////////////////////////
-function parseObj(obj){
+function renderForm(structure){
+    var formConf = {};
     
+    return formConf;
+}
+
+function fillLayoutNode(structure, layoutObj) {
+    if (structure.items) {
+        for (var i = 0; i < structure.items.length; i++) {
+//        if (structure.items[i].id.indexOf('cell_') === 0) {
+//            var cell = {};
+//            cell.id = structure.items[i].id;
+//            currLSArr.push(cell);
+//        }
+            if (structure.items[i].id.indexOf('rows_') === 0) {
+
+                layoutObj.rows = [];
+                console.log(JSON.stringify(layoutObj));
+                fillLayoutNode(structure.items[i], layoutObj.rows);
+            }
+            if (structure.items[i].id.indexOf('cols_') === 0) {
+                layoutObj.cols = [];
+                console.log(JSON.stringify(layoutObj));
+                fillLayoutNode(structure.items[i], layoutObj.cols)
+            }
+            if (structure.items[i].id.indexOf('cell_') === 0) {
+                var cell = {};
+                cell.id = structure.items[i].id;
+                layoutObj.push(cell);
+                console.log(JSON.stringify(layoutObj));
+                fillLayoutNode(structure.items[i], layoutObj[layoutObj.length - 1]);
+            }
+
+        }
+    }
+}
+
+function parseObj(doc, cb) {
+    var code = "";
+    var layout_struct = {};
+    var structure = doc.elementForm;
+    //fillLayoutNode(doc.elementForm[0].id, structure[0], layout_struct);
+//    if (structure[0].items[0].id.indexOf('rows_') === 0) {
+//        layout_struct.rows = [];
+//        fillLayoutNode(structure[0].items[0], layout_struct.rows);
+//
+//    } else {
+//        layout_struct.cols = [];
+//        fillLayoutNode(structure[0].items[0], layout_struct.cols);
+//    }
+    fillLayoutNode(structure[0], layout_struct);
+
+
+    console.log(JSON.stringify(layout_struct));
+
+    code += "var mainLayout = new dhx.Layout(null, " + JSON.stringify(layout_struct) + ");\n";
+    cb(code);
 }
 
 app.get('/formrender/:id', function (req, res) {
-    var code = "";
-    var layout_struct = {};
-    
+
+
     var query = MetaData.findById(req.params.id);
     query.exec(function (err, doc) {
         if (err)
@@ -868,12 +922,12 @@ app.get('/formrender/:id', function (req, res) {
             res.end(JSON.stringify(err));
             return;
         }
-        
-        var structure = doc.elementForm;
-        
-        code += "var mainLayout = new dhx.Layout(null, "+JSON.stringify(layout_struct)+");\n";
-        
-        res.send(code);
+
+        parseObj(doc, function (data) {
+            res.send(data);
+        });
+
+
     });
 
 

@@ -853,64 +853,149 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 });
 
 //////////////////////////////////////////////
-function renderForm(structure){
-    var formConf = {};
-    
-    return formConf;
-}
+class FormRenderer {
 
-function fillLayoutNode(structure, layoutObj) {
-    if (structure.items) {
-        for (var i = 0; i < structure.items.length; i++) {
-//        if (structure.items[i].id.indexOf('cell_') === 0) {
-//            var cell = {};
-//            cell.id = structure.items[i].id;
-//            currLSArr.push(cell);
-//        }
-            if (structure.items[i].id.indexOf('rows_') === 0) {
+    constructor(doc) {
+        this.code = "";
+        this.layout_struct = {};
+        this.structure = doc.elementForm;
 
-                layoutObj.rows = [];
-                console.log(JSON.stringify(layoutObj));
-                fillLayoutNode(structure.items[i], layoutObj.rows);
-            }
-            if (structure.items[i].id.indexOf('cols_') === 0) {
-                layoutObj.cols = [];
-                console.log(JSON.stringify(layoutObj));
-                fillLayoutNode(structure.items[i], layoutObj.cols)
-            }
-            if (structure.items[i].id.indexOf('cell_') === 0) {
-                var cell = {};
-                cell.id = structure.items[i].id;
-                layoutObj.push(cell);
-                console.log(JSON.stringify(layoutObj));
-                fillLayoutNode(structure.items[i], layoutObj[layoutObj.length - 1]);
-            }
+        this.fillLayoutNode(this.structure[0], this.layout_struct);
+        this.code += "var mainLayout = new dhx.Layout(null, " + JSON.stringify(this.layout_struct) + ");\n";
+    }
 
+    fillLayoutNode(structure, layoutObj) {
+        if (structure.items) {
+            for (var i = 0; i < structure.items.length; i++) {
+
+                if (structure.items[i].id.indexOf('rows_') === 0) {
+
+                    layoutObj.rows = [];
+                    //console.log(JSON.stringify(layoutObj));
+                    this.fillLayoutNode(structure.items[i], layoutObj.rows);
+                }
+                if (structure.items[i].id.indexOf('cols_') === 0) {
+                    layoutObj.cols = [];
+                    //console.log(JSON.stringify(layoutObj));
+                    this.fillLayoutNode(structure.items[i], layoutObj.cols)
+                }
+                if (structure.items[i].id.indexOf('cell_') === 0) {
+                    var cell = {};
+                    cell.id = structure.items[i].id;
+                    layoutObj.push(cell);
+                    //console.log(JSON.stringify(layoutObj));
+                    this.fillLayoutNode(structure.items[i], layoutObj[layoutObj.length - 1]);
+                }
+                if (structure.items[i].id.indexOf('form_') === 0) {
+                    var formConf = {};
+                    this.renderForm(structure.items[i], formConf);
+                    this.code += "var form = new dhx.Form(null, " + JSON.stringify(formConf) + ");\n";
+                }
+
+            }
         }
     }
+
+    renderForm(structure, formConf) {
+        //var formConf = {};
+
+        if (structure.items) {
+            for (var i = 0; i < structure.items.length; i++) {
+
+                if (structure.items[i].id.indexOf('formrows_') === 0) {
+
+                    formConf.rows = [];
+                    //console.log(JSON.stringify(layoutObj));
+                    this.renderForm(structure.items[i], formConf.rows);
+                }
+                if (structure.items[i].id.indexOf('formcols_') === 0) {
+                    formConf.cols = [];
+                    //console.log(JSON.stringify(layoutObj));
+                    this.renderForm(structure.items[i], formConf.cols)
+                }
+                if (structure.items[i].id.indexOf('gf_') === 0) {
+                    var cell = {};
+                    cell.id = structure.items[i].id;
+                    formConf.push(cell);
+                    //console.log(JSON.stringify(layoutObj));
+                    this.renderForm(structure.items[i], formConf[formConf.length - 1]);
+                }
+                if (structure.items[i].id.indexOf('fld_') === 0) {
+                    var cell = {};
+                    cell.id = structure.items[i].id;
+                    formConf.push(cell);
+                    //console.log(JSON.stringify(layoutObj));
+                    this.renderForm(structure.items[i], formConf[formConf.length - 1]);
+                }
+
+
+            }
+        }
+
+    }
+
 }
 
-function parseObj(doc, cb) {
-    var code = "";
-    var layout_struct = {};
-    var structure = doc.elementForm;
-    //fillLayoutNode(doc.elementForm[0].id, structure[0], layout_struct);
-//    if (structure[0].items[0].id.indexOf('rows_') === 0) {
-//        layout_struct.rows = [];
-//        fillLayoutNode(structure[0].items[0], layout_struct.rows);
+
+
+//function renderForm(structure) {
+//    var formConf = {};
 //
-//    } else {
-//        layout_struct.cols = [];
-//        fillLayoutNode(structure[0].items[0], layout_struct.cols);
+//    return formConf;
+//}
+
+//function fillLayoutNode(structure, layoutObj) {
+//    if (structure.items) {
+//        for (var i = 0; i < structure.items.length; i++) {
+////        if (structure.items[i].id.indexOf('cell_') === 0) {
+////            var cell = {};
+////            cell.id = structure.items[i].id;
+////            currLSArr.push(cell);
+////        }
+//            if (structure.items[i].id.indexOf('rows_') === 0) {
+//
+//                layoutObj.rows = [];
+//                //console.log(JSON.stringify(layoutObj));
+//                fillLayoutNode(structure.items[i], layoutObj.rows);
+//            }
+//            if (structure.items[i].id.indexOf('cols_') === 0) {
+//                layoutObj.cols = [];
+//                //console.log(JSON.stringify(layoutObj));
+//                fillLayoutNode(structure.items[i], layoutObj.cols)
+//            }
+//            if (structure.items[i].id.indexOf('cell_') === 0) {
+//                var cell = {};
+//                cell.id = structure.items[i].id;
+//                layoutObj.push(cell);
+//                //console.log(JSON.stringify(layoutObj));
+//                fillLayoutNode(structure.items[i], layoutObj[layoutObj.length - 1]);
+//            }
+//
+//        }
 //    }
-    fillLayoutNode(structure[0], layout_struct);
+//}
 
-
-    console.log(JSON.stringify(layout_struct));
-
-    code += "var mainLayout = new dhx.Layout(null, " + JSON.stringify(layout_struct) + ");\n";
-    cb(code);
-}
+//function parseObj(doc, cb) {
+//    var code = "";
+//    var layout_struct = {};
+//    var structure = doc.elementForm;
+//    //fillLayoutNode(doc.elementForm[0].id, structure[0], layout_struct);
+////    if (structure[0].items[0].id.indexOf('rows_') === 0) {
+////        layout_struct.rows = [];
+////        fillLayoutNode(structure[0].items[0], layout_struct.rows);
+////
+////    } else {
+////        layout_struct.cols = [];
+////        fillLayoutNode(structure[0].items[0], layout_struct.cols);
+////    }
+//    fillLayoutNode(structure[0], layout_struct);
+//
+//
+//    //console.log(JSON.stringify(layout_struct));
+//
+//    code += "var mainLayout = new dhx.Layout(null, " + JSON.stringify(layout_struct) + ");\n";
+//    cb(code);
+//}
 
 app.get('/formrender/:id', function (req, res) {
 
@@ -923,10 +1008,11 @@ app.get('/formrender/:id', function (req, res) {
             return;
         }
 
-        parseObj(doc, function (data) {
-            res.send(data);
-        });
-
+//        parseObj(doc, function (data) {
+//            res.send(data);
+//        });
+        var fr = new FormRenderer(doc);
+        res.send(fr.code);
 
     });
 

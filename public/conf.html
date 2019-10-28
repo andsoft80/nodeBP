@@ -982,29 +982,51 @@ and open the template in the editor.
 
                 if (id.indexOf("cell_") === 0) {
                     controlList = [];
-                    controlList.push({id: "html", value: "HTML Block"});
+                    controlList.push({id: "html", value: "HTML"});
                     controlList.push({id: "form", value: "Form"});
-                    controlList.push({id: "rows", value: "Rows section"});
-                    controlList.push({id: "cols", value: "Columns section"});
+                    controlList.push({id: "rows", value: "Rows"});
+                    controlList.push({id: "cols", value: "Columns"});
 
                 }
                 if (id.indexOf("form_") === 0) {
                     controlList = [];
-                    controlList.push({id: "nextCol", value: "Next column"});
-                    controlList.push({id: "groupFields", value: "Group fields"});
+                    //controlList.push({id: "nextCol", value: "Next column"});
+                    //controlList.push({id: "groupFields", value: "Group fields"});
+                    controlList.push({id: "formrows", value: "From Rows"});
+                    //controlList.push({id: "formcols", value: "Form Columns"});
 
 
                 }
                 if (id.indexOf("rows_") === 0) {
                     controlList = [];
-                    controlList.push({id: "row", value: "Row cell"});
+                    controlList.push({id: "row", value: "Row"});
 
 
                 }
                 if (id.indexOf("cols_") === 0) {
                     controlList = [];
-                    controlList.push({id: "col", value: "Column cell"});
+                    controlList.push({id: "col", value: "Column"});
 
+
+                }
+                if (id.indexOf("formrows_") === 0) {
+                    controlList = [];
+                    //controlList.push({id: "formrow", value: "Form Row"});
+                    controlList.push({id: "groupFields", value: "Group fields"});
+
+
+                }
+                if (id.indexOf("formcols_") === 0) {
+                    controlList = [];
+                    //controlList.push({id: "formcol", value: "Form Column"});
+                    controlList.push({id: "groupFields", value: "Group fields"});
+
+                }
+                if (id.indexOf("gf_") === 0) {
+                    controlList = [];
+                    
+                    controlList.push({id: "formrows", value: "From Rows"});
+                    controlList.push({id: "formcols", value: "Form Columns"});
 
                 }
                 return controlList;
@@ -1089,7 +1111,7 @@ and open the template in the editor.
                     if (cb_data.elementForm.length > 0) {
                         var str = JSON.stringify(cb_data.elementForm).split('dollar_').join('$');
                         treeForm.data.parse(str);
-                        
+
                     }
                 })
 
@@ -1106,7 +1128,7 @@ and open the template in the editor.
 
                     //target
                     //alert(id + " " + dragId);
-                    if (id.indexOf('form_') !== 0 && id.indexOf('nc_') !== 0 && id.indexOf('gf_') !== 0 && dragId.indexOf('fld_') === 0) {
+                    if (id.indexOf('formcols_') !== 0 && id.indexOf('formrows_') !== 0 &&  dragId.indexOf('fld_') === 0) {
                         alert("Fields can add in form only!");
                         return false;
                     }
@@ -1189,27 +1211,34 @@ and open the template in the editor.
                     if (id === 'form') {
                         treeForm.data.add({value: "Form", id: 'form_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
                     }
-                    if (id === 'nextCol') {
-                        treeForm.data.add({value: "Next Column", id: 'nc_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
-                    }
+//                    if (id === 'nextCol') {
+//                        treeForm.data.add({value: "Next Column", id: 'nc_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+//                    }
                     if (id === 'groupFields') {
                         treeForm.data.add({value: "Field's Group", id: 'gf_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
                     }
                     if (id === 'rows') {
-                        treeForm.data.add({value: "Rows section", id: 'rows_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                        treeForm.data.add({value: "Rows", id: 'rows_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
                     }
                     if (id === 'cols') {
-                        treeForm.data.add({value: "Columns section", id: 'cols_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                        treeForm.data.add({value: "Columns", id: 'cols_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
                     }
                     if (id === 'row') {
-                        treeForm.data.add({value: "Row Cell section", id: 'cell_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                        treeForm.data.add({value: "Row Cell", id: 'cell_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
                     }
                     if (id === 'col') {
-                        treeForm.data.add({value: "Column Cell section", id: 'cell_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                        treeForm.data.add({value: "Column Cell", id: 'cell_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
                     }
                     if (id === 'html') {
                         treeForm.data.add({value: "HTML block", id: 'html_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
                     }
+                    if (id === 'formrows') {
+                        treeForm.data.add({value: "Form Rows", id: 'formrows_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+                    if (id === 'formcols') {
+                        treeForm.data.add({value: "Form Columns", id: 'formcols_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
+                    }
+
 
 
                     if (id === 'save') {

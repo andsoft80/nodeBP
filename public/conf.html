@@ -1129,7 +1129,7 @@ and open the template in the editor.
                     //target
                     //alert(id + " " + dragId);
                     if (id.indexOf('formcols_') !== 0 && id.indexOf('formrows_') !== 0 &&  dragId.indexOf('fld_') === 0) {
-                        alert("Fields can add in form only!");
+                        alert("Fields can add in formrows or formcols only!");
                         return false;
                     }
 
@@ -1284,9 +1284,13 @@ and open the template in the editor.
                             url: "/formrender/" + data._id,
                             //headers: {"Access-Control-Allow-Origin": "*"},
 
-                            success: function (data) {
-                                alert(data);
-
+                            success: function (result) {
+                                //alert(result);
+                                var dhxwindow = new dhx.Window({width: 440, height: 520, title: "Window"});
+                                //layoutObjConfContentForms.cell('formEditor').attachHTML(result);
+                                dhxwindow.attachHTML(result);
+                                dhxwindow.show();
+                                console.log(result);
 
                             }
                         });

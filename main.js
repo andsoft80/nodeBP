@@ -192,7 +192,7 @@ app.get('/metadata/:id', function (req, res) {
 
 app.put('/metadata', function (req, res) {
     var objectData = (req.body);
-    console.log(JSON.stringify(req.body));
+    //console.log(JSON.stringify(req.body));
     //var fieldsStr = JSON.stringify(req.body.fields);
     var fieldsStr = (req.body.fields);
     MetaData.updateOne({_id: req.body._id}, objectData, function (err, result) {
@@ -202,7 +202,7 @@ app.put('/metadata', function (req, res) {
             return;
         }
 
-        console.log(JSON.stringify(result));
+        //console.log(JSON.stringify(result));
         res.send({"status": 200, "result": result});
     });
 
@@ -303,7 +303,15 @@ function uuidv4() {
         return v.toString(16);
     });
 }
-
+function pass_gen(len) {
+    chrs = 'abdehkmnpswxzABDEFGHKMNPQRSTWXZ123456789';
+    var str = '';
+    for (var i = 0; i < len; i++) {
+        var pos = Math.floor(Math.random() * chrs.length);
+        str += chrs.substring(pos,pos+1);
+    }
+    return str;
+}
 function buildField(field, con, table, cb) {
     //console.log('start '+field.fieldId);
     var res = {};
@@ -856,12 +864,20 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 class FormRenderer {
 
     constructor(doc) {
+        this.doc = doc;
         this.code = "";
         this.layout_struct = {};
         this.structure = doc.elementForm;
 
         this.fillLayoutNode(this.structure[0], this.layout_struct);
-        this.code += "var mainLayout = new dhx.Layout(null, " + JSON.stringify(this.layout_struct) + ");\n";
+        var layoutContId = "cont_"+uuidv4();
+        this.code = "var mainLayout = new dhx.Layout('"+layoutContId+"', " + JSON.stringify(this.layout_struct) + ");\n"+this.code;
+        
+        this.code = "<script>\n"+this.code;
+        this.code = "<div id='"+layoutContId+"' style='height: 300px;'></div>\n"+this.code;
+        this.code += "</script>\n";
+        
+        
     }
 
     fillLayoutNode(structure, layoutObj) {
@@ -889,7 +905,11 @@ class FormRenderer {
                 if (structure.items[i].id.indexOf('form_') === 0) {
                     var formConf = {};
                     this.renderForm(structure.items[i], formConf);
-                    this.code += "var form = new dhx.Form(null, " + JSON.stringify(formConf) + ");\n";
+                    var formName = "form_"+pass_gen(8);
+                    
+                    this.code += "var "+formName+" = new dhx.Form(null, " + JSON.stringify(formConf) + ");\n";
+                    this.code += "mainLayout.cell('"+structure.id+"').attach("+formName+");\n";
+                    
                 }
 
             }
@@ -922,7 +942,30 @@ class FormRenderer {
                 }
                 if (structure.items[i].id.indexOf('fld_') === 0) {
                     var cell = {};
-                    cell.id = structure.items[i].id;
+                    cell.id = structure.items[i].value;
+                    var dataField = {};
+                    for (var k = 0; k < this.doc.fields.length; k++) {
+                        if (this.doc.fields[k].fieldId === cell.id) {
+                            dataField = this.doc.fields[k];
+                            //console.log(JSON.stringify(dataField));
+                            break;
+                        }
+
+                    }
+                    if (dataField.type === 'String' || dataField.type === 'Extend') {
+                        cell.type = 'input';
+                        cell.label = dataField.alias;
+                    }
+                    if (dataField.type === 'Integer') {
+                        cell.type = 'input';
+                        cell.label = dataField.alias;
+                        validation: "integer";
+                    }
+                    if (dataField.type === 'Numeric') {
+                        cell.type = 'input';
+                        cell.label = dataField.alias;
+                        validation: "numeric";
+                    }
                     formConf.push(cell);
                     //console.log(JSON.stringify(layoutObj));
                     this.renderForm(structure.items[i], formConf[formConf.length - 1]);

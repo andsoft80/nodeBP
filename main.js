@@ -866,16 +866,21 @@ class FormRenderer {
     constructor(doc) {
         this.doc = doc;
         this.code = "";
+        this.html = "";
+        this.parcel = {};
         this.layout_struct = {};
         this.structure = doc.elementForm;
 
         this.fillLayoutNode(this.structure[0], this.layout_struct);
-        var layoutContId = "cont_"+uuidv4();
+        var layoutContId = "cont_";//+pass_gen(8);
         this.code = "var mainLayout = new dhx.Layout('"+layoutContId+"', " + JSON.stringify(this.layout_struct) + ");\n"+this.code;
         
-        this.code = "<script>\n"+this.code;
-        this.code = "<div id='"+layoutContId+"' style='height: 300px;'></div>\n"+this.code;
-        this.code += "</script>\n";
+        //this.code = "<script>\n"+this.code;
+        this.html = "<div id='"+layoutContId+"' ></div>\n";
+        //this.code += "</script>\n";
+        //this.code+="alert('mama');";
+        this.parcel.code = this.code;
+        this.parcel.html = this.html;
         
         
     }
@@ -936,6 +941,9 @@ class FormRenderer {
                 if (structure.items[i].id.indexOf('gf_') === 0) {
                     var cell = {};
                     cell.id = structure.items[i].id;
+                    //cell.cellCss = "dhx_layout-cell--bordered";
+                    cell.padding = "10px";
+                    cell.align = "start";
                     formConf.push(cell);
                     //console.log(JSON.stringify(layoutObj));
                     this.renderForm(structure.items[i], formConf[formConf.length - 1]);
@@ -943,6 +951,9 @@ class FormRenderer {
                 if (structure.items[i].id.indexOf('fld_') === 0) {
                     var cell = {};
                     cell.id = structure.items[i].value;
+                    //cell.width = "150px";
+                    cell.gravity = false;
+                    //cell.labelInline = true;
                     var dataField = {};
                     for (var k = 0; k < this.doc.fields.length; k++) {
                         if (this.doc.fields[k].fieldId === cell.id) {
@@ -1055,7 +1066,7 @@ app.get('/formrender/:id', function (req, res) {
 //            res.send(data);
 //        });
         var fr = new FormRenderer(doc);
-        res.send(fr.code);
+        res.send(fr.parcel);
 
     });
 

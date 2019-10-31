@@ -993,7 +993,7 @@ and open the template in the editor.
                     //controlList.push({id: "nextCol", value: "Next column"});
                     //controlList.push({id: "groupFields", value: "Group fields"});
                     controlList.push({id: "formrows", value: "From Rows"});
-                    //controlList.push({id: "formcols", value: "Form Columns"});
+                    controlList.push({id: "formcols", value: "Form Columns"});
 
 
                 }
@@ -1024,7 +1024,7 @@ and open the template in the editor.
                 }
                 if (id.indexOf("gf_") === 0) {
                     controlList = [];
-                    
+
                     controlList.push({id: "formrows", value: "From Rows"});
                     controlList.push({id: "formcols", value: "Form Columns"});
 
@@ -1128,7 +1128,7 @@ and open the template in the editor.
 
                     //target
                     //alert(id + " " + dragId);
-                    if (id.indexOf('formcols_') !== 0 && id.indexOf('formrows_') !== 0 &&  dragId.indexOf('fld_') === 0) {
+                    if (id.indexOf('formcols_') !== 0 && id.indexOf('formrows_') !== 0 && dragId.indexOf('fld_') === 0) {
                         alert("Fields can add in formrows or formcols only!");
                         return false;
                     }
@@ -1286,11 +1286,23 @@ and open the template in the editor.
 
                             success: function (result) {
                                 //alert(result);
-                                var dhxwindow = new dhx.Window({width: 440, height: 520, title: "Window"});
+                                var dhxwindow = new dhx.Window({width: 700, height: 520, title: "Window", resizable:true, closable:true, movable:true});
+                                dhxwindow.attachHTML(result.html);
+
                                 //layoutObjConfContentForms.cell('formEditor').attachHTML(result);
-                                dhxwindow.attachHTML(result);
+                                //alert(result.code);
+                               
+                                let formFunction = new Function(result.code);
                                 dhxwindow.show();
-                                console.log(result);
+                                
+                                setTimeout(()=>formFunction(),1);
+                                
+
+
+
+
+
+                                //console.log(result);
 
                             }
                         });

@@ -878,7 +878,7 @@ class FormRenderer {
         //this.code = "<script>\n"+this.code;
         this.html = "<div id='"+layoutContId+"' ></div>\n";
         //this.code += "</script>\n";
-        //this.code+="alert('mama');";
+        
         this.parcel.code = this.code;
         this.parcel.html = this.html;
         
@@ -910,7 +910,7 @@ class FormRenderer {
                 if (structure.items[i].id.indexOf('form_') === 0) {
                     var formConf = {};
                     this.renderForm(structure.items[i], formConf);
-                    var formName = "form_"+pass_gen(8);
+                    var formName = structure.items[i].id.split('-').join('');
                     
                     this.code += "var "+formName+" = new dhx.Form(null, " + JSON.stringify(formConf) + ");\n";
                     this.code += "mainLayout.cell('"+structure.id+"').attach("+formName+");\n";

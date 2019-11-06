@@ -330,6 +330,7 @@ function showListForm(id, mode, cb) {
             rowHeight: rh + 2,
             //data: dataset,
             selection: "complex",
+            resizable: true
             //height: 200,
 
                     //columnsAutoWidth : true

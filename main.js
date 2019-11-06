@@ -866,21 +866,21 @@ class FormRenderer {
     constructor(doc) {
         this.doc = doc;
         this.code = "";
-        this.html = "";
-        this.parcel = {};
+        //this.html = "";
+        //this.parcel = {};
         this.layout_struct = {};
         this.structure = doc.elementForm;
 
         this.fillLayoutNode(this.structure[0], this.layout_struct);
-        var layoutContId = "cont_";//+pass_gen(8);
+        var layoutContId = this.structure[0].id;
         this.code = "var mainLayout = new dhx.Layout('"+layoutContId+"', " + JSON.stringify(this.layout_struct) + ");\n"+this.code;
         
         //this.code = "<script>\n"+this.code;
-        this.html = "<div id='"+layoutContId+"' ></div>\n";
+        //this.html = "<div id='"+layoutContId+"' ></div>\n";
         //this.code += "</script>\n";
         
-        this.parcel.code = this.code;
-        this.parcel.html = this.html;
+        //this.parcel.code = this.code;
+        //this.parcel.html = this.html;
         
         
     }
@@ -1066,7 +1066,7 @@ app.get('/formrender/:id', function (req, res) {
 //            res.send(data);
 //        });
         var fr = new FormRenderer(doc);
-        res.send(fr.parcel);
+        res.send(fr.code);
 
     });
 

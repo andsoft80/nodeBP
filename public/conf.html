@@ -1103,7 +1103,7 @@ and open the template in the editor.
                     type: "button",
                     icon: "dxi-plus",
                     value: "Form Layout",
-                    id: "root_cell"
+                    id: "root_" + uuidv4()
 
                 }, 1);
 
@@ -1160,6 +1160,10 @@ and open the template in the editor.
                     }, 0);
 
                 });
+
+//                treeForm.data.events.on("AfterAdd", function (newItem) {
+//                    console.log("A new item is added");
+//                });
 
                 for (var i = 0; i < data.fields.length; i++) {
 
@@ -1286,17 +1290,19 @@ and open the template in the editor.
 
                             success: function (result) {
                                 //alert(result);
-                                var dhxwindow = new dhx.Window({width: 700, height: 520, title: "Window", resizable:true, closable:true, movable:true});
-                                dhxwindow.attachHTML(result.html);
+                                //var dhxwindow = new dhx.Window({width: 700, height: 520, title: "Window", resizable: true, closable: true, movable: true});
+                                var formhtml = "<div id='" + Object.keys(treeForm.getState())[0] + "' ></div>";
+                                //dhxwindow.attachHTML(formhtml);
+                                //layoutObjConfContentForms
 
-                                //layoutObjConfContentForms.cell('formEditor').attachHTML(result);
+                                layoutObjConfContentForms.cell('formEditor').attachHTML(formhtml);
                                 //alert(result.code);
-                               
-                                let formFunction = new Function(result.code);
-                                dhxwindow.show();
-                                
-                                setTimeout(()=>formFunction(),1);
-                                
+
+                                let formFunction = new Function(result);
+                                //dhxwindow.show();
+
+                                setTimeout(() => formFunction(), 1);
+
 
 
 

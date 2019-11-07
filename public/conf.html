@@ -1041,7 +1041,7 @@ and open the template in the editor.
 //                        {id: "toolBar"},
                         {cols: [
                                 {id: "dataStructure", header: "Fields & Tables", width: 250, gravity: false,
-                                    css: "dhx_layout-cell--border_right", resizable: false, height: "700px", collapsable: true,
+                                    css: "dhx_layout-cell--border_right", resizable: true, height: "700px", collapsable: true,
                                     rows: [
                                         {
                                             id: "toolBarData",
@@ -1056,7 +1056,7 @@ and open the template in the editor.
 
                                 },
                                 {id: "formStructure", header: "Form Tree", width: 250, gravity: false,
-                                    css: "dhx_layout-cell--border_right", resizable: false, height: "700px", collapsable: true,
+                                    css: "dhx_layout-cell--border_right", resizable: true, height: "700px", collapsable: true,
                                     rows: [
                                         {
                                             id: "toolBar",
@@ -1293,13 +1293,19 @@ and open the template in the editor.
                                 //var dhxwindow = new dhx.Window({width: 700, height: 520, title: "Window", resizable: true, closable: true, movable: true});
                                 var formhtml = "<div id='" + Object.keys(treeForm.getState())[0] + "' ></div>";
                                 //dhxwindow.attachHTML(formhtml);
-                                //layoutObjConfContentForms
+                                if ($("#" + Object.keys(treeForm.getState())[0]).html() !== undefined) {
+                                   
+                                    $("#" + Object.keys(treeForm.getState())[0]).html("");
+                                    layoutObjConfContentForms.cell('formEditor').paint();
+                                }
 
-                                layoutObjConfContentForms.cell('formEditor').attachHTML(formhtml);
-                                //alert(result.code);
+                                if ($("#" + Object.keys(treeForm.getState())[0]).html() === undefined) {
+                                    layoutObjConfContentForms.cell('formEditor').attachHTML(formhtml);
+                                }
+
 
                                 let formFunction = new Function(result);
-                                //dhxwindow.show();
+
 
                                 setTimeout(() => formFunction(), 1);
 

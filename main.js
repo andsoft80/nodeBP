@@ -953,7 +953,8 @@ class FormRenderer {
                     cell.id = structure.items[i].value;
                     //cell.width = "150px";
                     cell.gravity = false;
-                    //cell.labelInline = true;
+                    cell.labelInline = true;
+                    
                     var dataField = {};
                     for (var k = 0; k < this.doc.fields.length; k++) {
                         if (this.doc.fields[k].fieldId === cell.id) {
@@ -963,19 +964,24 @@ class FormRenderer {
                         }
 
                     }
+                    cell.placeholder = dataField.alias;
+                    cell.help = dataField.alias;
                     if (dataField.type === 'String' || dataField.type === 'Extend') {
                         cell.type = 'input';
                         cell.label = dataField.alias;
+                        cell.cellCss =  "ht"
                     }
                     if (dataField.type === 'Integer') {
                         cell.type = 'input';
                         cell.label = dataField.alias;
-                        validation: "integer";
+                        cell.cellCss =  "ht"
+                        cell.validation = "integer";
                     }
                     if (dataField.type === 'Numeric') {
                         cell.type = 'input';
                         cell.label = dataField.alias;
-                        validation: "numeric";
+                        cell.cellCss =  "ht"
+                        cell.validation = "numeric";
                     }
                     formConf.push(cell);
                     //console.log(JSON.stringify(layoutObj));

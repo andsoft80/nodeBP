@@ -331,7 +331,7 @@ function showListForm(id, mode, cb) {
             //data: dataset,
             selection: "complex",
             resizable: true
-            //height: 200,
+                    //height: 200,
 
                     //columnsAutoWidth : true
                     //fitToContainer : true
@@ -379,7 +379,8 @@ function showListForm(id, mode, cb) {
                         btn.innerHTML = '...';
                         btn.style.top = '1px';
                         btn.style.zIndex = 0;
-                        btn.style.left = (f.offsetWidth - rh - 1) + 'px';
+                        //btn.style.left = (f.offsetWidth - rh - 1) + 'px';
+                        btn.style.right = 0;
                         btn.style.position = 'absolute';
                         btn.style.height = btn.style.width = rh + 'px';
                         f.appendChild(btn);
@@ -391,7 +392,7 @@ function showListForm(id, mode, cb) {
                                 selectItem[column.id.replace("edt_", "")] = data.id;
                                 //selectItem[column.id].title = 'mama';
                                 grid.paint();
-                                
+
                                 toolbar.events.fire("Click", ["save"]);
 
                             })
@@ -417,7 +418,7 @@ function showListForm(id, mode, cb) {
             selectItem = row;
             selectCol = column;
             if (row.id != editCell.r | column.id != editCell.c) {
-                
+
                 $('#editButton').remove();
             }
 
@@ -460,7 +461,7 @@ function showListForm(id, mode, cb) {
             } else {
 
                 dhxWindow.setSize(restore.width, restore.height);
-                
+
 
             }
             toFull = !toFull;
@@ -478,8 +479,8 @@ function showListForm(id, mode, cb) {
 //<--ListForm//////////////////////////////////////////////////////////////////////
 
 //-->ElementForm
-function showElementForm(id, cb){
-    
+function showElementForm(id, cb) {
+
 }
 //<--ElementForm
 

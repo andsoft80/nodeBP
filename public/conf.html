@@ -1294,7 +1294,7 @@ and open the template in the editor.
                                 var formhtml = "<div id='" + Object.keys(treeForm.getState())[0] + "' ></div>";
                                 //dhxwindow.attachHTML(formhtml);
                                 if ($("#" + Object.keys(treeForm.getState())[0]).html() !== undefined) {
-                                   
+
                                     $("#" + Object.keys(treeForm.getState())[0]).html("");
                                     layoutObjConfContentForms.cell('formEditor').paint();
                                 }
@@ -1309,7 +1309,46 @@ and open the template in the editor.
 
                                 setTimeout(() => formFunction(), 1);
 
+                                //-->edt draw
+                                setTimeout(() =>
+                                    getObject(data._id, function (doc) {
+                                        for (var i = 0; i < doc.fields.length; i++) {
+                                            var field = doc.fields[i];
+                                            if (field.type === "Extend") {
+                                                if ($('.dhx_input__wrapper:has("#' + field.fieldId + '")').parents("#" + Object.keys(treeForm.getState())[0]).get(0)) {
+                                                    var f = $('.dhx_input__wrapper:has("#' + field.fieldId + '")').get(0);
+                                                    var btn = document.createElement("button");
+                                                    btn.setAttribute('id', "editButton_name");
+                                                    btn.innerHTML = '...';
+                                                    btn.style.top = '1px';
+                                                    btn.style.zIndex = 0;
+                                                    //btn.style.left = (f.offsetWidth - rh - 1) + 'px';
+                                                    btn.style.right = 0;
+                                                    btn.style.position = 'absolute';
+                                                    btn.style.height = btn.style.width = rh + 'px';
 
+                                                    btn.setAttribute('edtData', JSON.stringify(field.edtType));
+                                                    
+                                                    btn.onclick = function () {
+                                                        
+                                                        //var edtData = field.edtType;
+                                                        showListForm(JSON.parse(this.getAttribute('edtData')).objectId, true, function (data) {
+                                                            //selectItem[column.id] = data.name;
+                                                            //selectItem[column.id.replace("edt_", "")] = data.id;
+                                                            //selectItem[column.id].title = 'mama';
+                                                            //grid.paint();
+
+                                                            //toolbar.events.fire("Click", ["save"]);
+                                                            alert(data.name);
+
+                                                        })
+                                                    };
+                                                    f.appendChild(btn);
+                                                }
+                                            }
+                                        }
+                                    }), 100);
+                                //<--edt draw////////
 
 
 

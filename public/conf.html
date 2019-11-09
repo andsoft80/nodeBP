@@ -1328,9 +1328,9 @@ and open the template in the editor.
                                                     btn.style.height = btn.style.width = rh + 'px';
 
                                                     btn.setAttribute('edtData', JSON.stringify(field.edtType));
-                                                    
+
                                                     btn.onclick = function () {
-                                                        
+
                                                         //var edtData = field.edtType;
                                                         showListForm(JSON.parse(this.getAttribute('edtData')).objectId, true, function (data) {
                                                             //selectItem[column.id] = data.name;
@@ -1362,10 +1362,7 @@ and open the template in the editor.
                 });
 
             }
-
-            function createFieldTab(tabbarObjConf, data) {
-                /////--> Fields tab
-
+            function createTableFieldsLayout(data) {
                 var list = new dhx.List(null, {
                     dragMode: "both",
                     dragCopy: true,
@@ -1414,7 +1411,6 @@ and open the template in the editor.
                             ]}
                     ]
                 });
-                tabbarObjConf.cell('fields').attach(layoutObjConfContentFields);
                 layoutObjConfContentFields.cell('toolBar').attach(toolbarFields);
                 layoutObjConfContentFields.cell('mainContent').attach(list);
                 layoutObjConfContentFields.cell('subContent').attach(listForm);
@@ -1497,8 +1493,152 @@ and open the template in the editor.
                     var item = list.data.getItem(_id);
                     editField(data, list, listForm, item.value);
                 });
+                
+                return layoutObjConfContentFields;
 
+            }
+            function createFieldTab(tabbarObjConf, data) {
+                /////--> Fields tab
+
+//                var list = new dhx.List(null, {
+//                    dragMode: "both",
+//                    dragCopy: true,
+//
+//                    css: "dhx_widget--bordered baseheight",
+//                    multiselection: false,
+//                    template: function (item) {
+//                        var val = "<strong>" + item.value.fieldId + " </strong>" + JSON.stringify(item.value);
+//                        return val;
+//                    }
+//                });
+//                var listForm = new dhx.List(null, {
+//                    dragMode: "both",
+//                    //height: 500,
+//                    width: 100,
+//                    itemHeight: 35,
+//                    css: "dhx_widget--bordered baseheight",
+//                    multiselection: false,
+//                    template: function (item) {
+//                        var val = "<strong>" + item.value.fieldId + " </strong>";
+//                        return val;
+//                    }
+//                });
+//                list.events.on("Click", function (id, e) {
+//                    listForm.selection.remove(listForm.selection.getId());
+//                });
+//
+//                listForm.events.on("Click", function (id, e) {
+//                    list.selection.remove(list.selection.getId());
+//                });
+//
+//                loadFielsdList(list, data._id);
+//                loadFielsdListForm(listForm, data._id);
+//
+//                var toolbarFields = createSmallToolBar();
+//                toolbarFields.data.add({
+//                    type: "button", value: "Test list form", id: "test", size: "small"
+//                });
+//                var layoutObjConfContentFields = new dhx.Layout(null, {
+//                    rows: [
+//                        {id: "toolBar"},
+//                        {cols: [
+//                                {id: "mainContent", header: "All fields", width: 300, gravity: true},
+//                                {width: 10, gravity: false},
+//                                {id: "subContent", header: "List Form's fields ( id & name are mandatory )", gravity: true}
+//                            ]}
+//                    ]
+//                });
+                //tabbarObjConf.cell('fields').attach(layoutObjConfContentFields);
+//                layoutObjConfContentFields.cell('toolBar').attach(toolbarFields);
+//                layoutObjConfContentFields.cell('mainContent').attach(list);
+//                layoutObjConfContentFields.cell('subContent').attach(listForm);
+//                toolbarFields.events.on("Click", function (_id, e) {
+//                    if (_id === 'add') {
+//                        //alert('add');
+//
+//                        editField(data, list, listForm);
+//
+//                    }
+//                    ;
+//                    if (_id === 'save') {
+//
+//                        saveFields(data._id, list);
+//                        saveFieldsListForm(data._id, listForm);
+//                        alert('Done!');
+//
+//                    }
+//                    if (_id === 'delete') {
+//                        if (confirm("Delete field?")) {
+//                            var selid = list.selection.getId();
+//                            var selItem = list.selection.getItem();
+//                            //var selid = list.getFocusItem();
+//                            if (selid) {
+//
+//                                var arr = [];
+//                                listForm.data.map(function (item) {
+//                                    //alert(JSON.stringify(item));
+//                                    if (item.value.fieldId === selItem.value.fieldId) {
+//                                        //listForm.data.remove(item.id);
+//                                        arr.push(item);
+//                                    }
+//                                });
+//
+//                                for (var i = 0; i < arr.length; i++) {
+//                                    listForm.data.remove(arr[i].id);
+//                                }
+//                                list.data.remove(selid);
+//                                saveFields(data._id, list);
+//                                saveFieldsListForm(data._id, listForm);
+//                            }
+//
+//                            var selid = listForm.selection.getId();
+//                            //var selid = listForm.getFocusItem();
+//                            if (selid) {
+//                                listForm.data.remove(selid);
+//                                saveFieldsListForm(data._id, listForm);
+//                            }
+//
+//                            alert('Done!');
+//                        } else {
+//
+//                        }
+//
+//
+//                    }
+//                    if (_id === 'test') {
+//                        var parcel = {};
+//                        parcel.id = data._id;
+//                        $.ajax({
+//                            type: "post",
+//                            async: false,
+//                            url: "/build",
+//                            //headers: {"Access-Control-Allow-Origin": "*"},
+//                            data: parcel,
+//                            success: function (data) {
+//                                alert(JSON.stringify(data.text));
+//
+//
+//                            }
+//                        });
+//
+//                        showListForm(data._id, false, function (data) {
+//                            alert(JSON.stringify(data));
+//                        });
+//                    }
+//
+//                });
+//                list.events.on("Click", function (_id, e) {
+//                    var item = list.data.getItem(_id);
+//                    editField(data, list, listForm, item.value);
+//                });
+                    tabbarObjConf.cell('fields').attach(createTableFieldsLayout(data));
                 ////<-- Fields tab
+            }
+
+
+            function createTablePartsTab(tabbarObjConf, data) {
+
+
             }
 //<--ObjectConfigurator//////////////////////////////////////////////////////
 //-->TabBar Workplace///////////////////////////////////////////////////////////

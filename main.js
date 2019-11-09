@@ -965,7 +965,7 @@ class FormRenderer {
 
                     }
                     cell.placeholder = dataField.alias;
-                    cell.help = dataField.alias;
+                    cell.help = dataField.helpText;
                     if (dataField.type === 'String' || dataField.type === 'Extend') {
                         cell.type = 'input';
                         cell.label = dataField.alias;

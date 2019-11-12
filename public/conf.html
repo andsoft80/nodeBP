@@ -584,15 +584,189 @@ and open the template in the editor.
                     success: function (data) {
                         createFieldTab(tabbarObjConf, data);
                         createFormTab(tabbarObjConf, data);
+                        createTablePartsTab(tabbarObjConf, data);
 
                     }
                 });
 
             }
+            function showTablePartProp(objId, tpId, isNew, currTPObj, list) {
+                
+                var titleP = "";
+                if (isNew) {
+                    titleP = "Create new of TableParts"
+                } else {
+                    titleP = "Edit TablePart";
+                }
+                //alert(JSON.stringify(selCurrTreeItemName));
+                var rows = [
+                    {
+                        type: "text",
+                        //label: "text",
+                        //labelInline: true,
+                        value: titleP
+                    },
+                    {
+                        id: "name",
+                        type: "input",
+                        label: "Id",
 
-            function loadFielsdList(list, objId) {
+                        placeholder: "TablePart id",
+                        required: true,
+                        validation: "alphanumeric",
+                        disabled: !isNew
+                    },
+                    {
+                        id: "alias",
+                        type: "input",
+                        label: "Alias",
+
+                        placeholder: "TablePart alias",
+                        required: true
+
+                    }
+                ];
+
+                var rawsBtn = [
+                    {
+                        cols: [
+                            {
+                                type: "button",
+                                value: "Save",
+                                size: "medium",
+                                view: "flat",
+                                color: "primary",
+                                id: "saveObject"
+                            },
+                            {
+                                type: "button",
+                                value: "Cancel",
+                                size: "medium",
+                                view: "flat",
+                                color: "primary",
+                                id: "cancel"
+                            }
+                        ]}
+                ];
+                var form = new dhx.Form(null, {rows});
+                if (!isNew) {
+
+                    //getObject(objId, function (result) {
+                    form.setValue({name: currTPObj.id, alias: currTPObj.value});
+
+                    //});
+                }
+                var formBtn = new dhx.Form(null, {rows: rawsBtn});
+                layout.cell('r_props').attach(form);
+                layout.cell('r_props2').attach(formBtn);
+                formBtn.events.on("ButtonClick", function (id, e) {
+                    if (id === "saveObject") {
+                        if (!form.validate()) {
+                            alert("Fill fields correctly!");
+                            return;
+                        }
+                        if (form.getValue().name && form.getValue().alias) {
+//                                    if (tree.data.exists(form.getValue().name)){
+//                                        alert("Name of object is busy. Change name!");
+//                                        return;
+//                                    }
+
+                            var tablePartObj = {};
+
+                            tablePartObj.id = form.getValue().name;
+                            tablePartObj.alias = form.getValue().alias;
+
+
+                            if (isNew) {
+                                
+                                getObject(objId, function (obj) {
+                                    tablePartObj.fields = [];
+                                    tablePartObj.listForm = [];
+
+                                    obj.tableParts.push(tablePartObj);
+                                    updateObject(obj, function (result) {
+                                        form.destructor();
+                                        formBtn.destructor();
+                                        if (result.status === 200) {
+                                            loadTableParts(list,objId);
+                                            alert('Updated!');
+                                            
+                                        } else {
+                                            alert(JSON.stringify(result));
+                                        }
+                                    });
+                                });
+
+
+                            } else {
+                                getObject(objId, function (obj) {
+                                    for (var i = 0; i < obj.tableParts.length; i++) {
+                                        if (obj.tableParts[i].id === tpId) {
+                                            obj.id = form.getValue().name;
+                                            obj.alias = form.getValue().alias;
+                                            break;
+                                        }
+                                    }
+                                });
+
+
+
+                                obj.__v = obj.__v + 1;
+
+                                updateObject(obj, function (result) {
+                                    form.destructor();
+                                    formBtn.destructor();
+                                    if (result.status === 200) {
+                                        loadTableParts(list,objId);
+                                        alert('Updated!');
+                                    } else {
+                                        alert(JSON.stringify(result));
+                                    }
+                                });
+                            }
+                        } else {
+                            alert("Input id and alias of object!");
+                        }
+                    }
+                    if (id === "cancel") {
+
+                        form.clear();
+                        form.destructor();
+                        formBtn.destructor();
+                    }
+                });
+            }
+            function loadTableParts(list, objId) {
                 getObject(objId, function (obj) {
-                    fields = obj.fields;
+                    var data = [];
+                    if (obj.tableParts) {
+                        
+                        for (var i = 0; i < obj.tableParts.length; i++) {
+                            var dataElement = {};
+                            dataElement.value = obj.tableParts[i].alias;
+                            dataElement.id = obj.tableParts[i].id;
+                            data.push(dataElement);
+                        }
+                        list.data.parse(data);
+                        
+                    }
+                });
+            }
+
+            function loadFielsdList(list, objId, tpId) {
+                getObject(objId, function (obj) {
+                    if (tpId) {
+                        var fields = [];
+                        for (var i = 0; i < obj.tableParts.length; i++) {
+                            if (obj.tableParts[i].id === tpId) {
+                                fields = obj.tableParts[i].fields;
+                                break;
+                            }
+                        }
+
+                    } else {
+                        var fields = obj.fields;
+                    }
                     var data = [];
                     for (var i = 0; i < fields.length; i++) {
                         var dataElement = {};
@@ -603,9 +777,19 @@ and open the template in the editor.
                     list.data.parse(data);
                 });
             }
-            function loadFielsdListForm(list, objId) {
+            function loadFielsdListForm(list, objId, tpId) {
                 getObject(objId, function (obj) {
-                    fields = obj.listForm;
+                    if (tpId) {
+                        var fields = [];
+                        for (var i = 0; i < obj.tableParts.length; i++) {
+                            if (obj.tableParts[i].id === tpId) {
+                                fields = obj.tableParts[i].listForm;
+                                break;
+                            }
+                        }
+                    } else {
+                        var fields = obj.listForm;
+                    }
                     var data = [];
                     for (var i = 0; i < fields.length; i++) {
                         var dataElement = {};
@@ -1493,7 +1677,7 @@ and open the template in the editor.
                     var item = list.data.getItem(_id);
                     editField(data, list, listForm, item.value);
                 });
-                
+
                 return layoutObjConfContentFields;
 
             }
@@ -1631,13 +1815,111 @@ and open the template in the editor.
 //                    var item = list.data.getItem(_id);
 //                    editField(data, list, listForm, item.value);
 //                });
-                    tabbarObjConf.cell('fields').attach(createTableFieldsLayout(data));
+                tabbarObjConf.cell('fields').attach(createTableFieldsLayout(data));
                 ////<-- Fields tab
             }
 
 
             function createTablePartsTab(tabbarObjConf, data) {
+                var layoutObjConfContentTP = new dhx.Layout(null, {
 
+                    rows: [
+//                        {id: "toolBar"},
+                        {cols: [
+                                {id: "tablePartsCell", header: "Table Parts", width: 250, gravity: false,
+                                    css: "dhx_layout-cell--border_right", height: "700px", collapsable: true,
+                                    rows: [
+                                        {
+                                            id: "toolBarTP",
+                                            height: "80px",
+                                            gravity: false
+                                        },
+                                        {
+                                            id: "contentTP",
+                                            gravity: false
+                                        }
+                                    ]
+
+                                },
+                                {id: "fieldsTP", header: "All fields", width: 250, gravity: true,
+                                    css: "dhx_layout-cell--border_right", height: "700px",
+                                    rows: [
+                                        {
+                                            id: "toolBar",
+                                            height: "80px",
+                                            gravity: false
+                                        },
+                                        {
+                                            id: "content",
+                                            gravity: false
+                                        }
+                                    ]
+
+                                },
+
+                                {id: "formListFields", header: "Form List Fields", gravity: true,
+                                    //css: "dhx_layout-cell--border_left",
+                                    height: "700px",
+
+                                }
+                            ]}
+                    ]
+                });
+
+                tabbarObjConf.cell('tableParts').attach(layoutObjConfContentTP);
+                var list = new dhx.List(null, {
+                    dragMode: "both",
+                    dragCopy: true,
+
+                    css: "dhx_widget--bordered baseheight",
+                    multiselection: false,
+                    template: function (item) {
+                        var val = "<strong>" + item.value.fieldId + " </strong>" + JSON.stringify(item.value);
+                        return val;
+                    }
+                });
+                var listForm = new dhx.List(null, {
+                    dragMode: "both",
+                    //height: 500,
+                    width: 100,
+                    itemHeight: 35,
+                    css: "dhx_widget--bordered baseheight",
+                    multiselection: false,
+                    template: function (item) {
+                        var val = "<strong>" + item.value.fieldId + " </strong>";
+                        return val;
+                    }
+                });
+                var listTP = new dhx.List(null, {
+                    //dragMode: "both",
+                    //height: 500,
+                    width: 100,
+                    itemHeight: 35,
+                    css: "dhx_widget--bordered baseheight",
+                    multiselection: false,
+                    template: function (item) {
+                        var val = "<strong>" + item.id + " </strong>";
+                        return val;
+                    }
+                });
+                list.events.on("Click", function (id, e) {
+                    listForm.selection.remove(listForm.selection.getId());
+                });
+
+                listForm.events.on("Click", function (id, e) {
+                    list.selection.remove(list.selection.getId());
+                });
+//                loadFielsdList(list, data._id, tablePartId);
+//                loadFielsdListForm(listForm, data._id, tablePartId);
+                loadTableParts(listTP, data._id);
+                layoutObjConfContentTP.cell('contentTP').attach(listTP);
+                var toolbarTP = createSmallToolBar();
+                layoutObjConfContentTP.cell('toolBarTP').attach(toolbarTP);
+                toolbarTP.events.on("Click", function (_id, e) {
+                    if (_id === 'add') {
+                        showTablePartProp(data._id, null, true, null,listTP);
+                    }
+                });
 
             }
 //<--ObjectConfigurator//////////////////////////////////////////////////////

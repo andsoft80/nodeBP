@@ -308,7 +308,7 @@ function pass_gen(len) {
     var str = '';
     for (var i = 0; i < len; i++) {
         var pos = Math.floor(Math.random() * chrs.length);
-        str += chrs.substring(pos,pos+1);
+        str += chrs.substring(pos, pos + 1);
     }
     return str;
 }
@@ -384,7 +384,7 @@ function buildField(field, con, table, cb) {
 
 }
 
-function buildObject(id, cb) {
+function buildObject(id, tpId, cb) {
 //-->db///////////////////////
     var res = {};
 
@@ -407,6 +407,23 @@ function buildObject(id, cb) {
     var query = MetaData.findById(id);
     query.exec(function (err, doc) {
         if (doc) {
+            if (tpId) {
+                var tpDoc = {};
+                for (var i = 0; i < doc.tableParts.length; i++) {
+                    if (doc.tableParts[i].id === tpId) {
+                        //fields = obj.tableParts[i].fields;
+                        tpDoc.objectType = doc.objectType;
+                        tpDoc.fields = doc.tableParts[i].fields;
+                        tpDoc.listForm = doc.tableParts[i].listForm;
+                        tpDoc.name = tpId;
+                        tpDoc.mainTableName = doc.name;
+                        doc = tpDoc;
+                        break;
+                    }
+                }
+
+            }
+
             //if (doc.fields.length > 0) {
             //console.log(doc.fields.length);
             if (doc.objectType === "dir" || doc.objectType === "doc") {
@@ -461,7 +478,7 @@ function buildObject(id, cb) {
                         for (var i = 0; i < result.length; i++) {
                             var fieldDB = {};
                             fieldDB.fieldId = result[i].Field;
-                            if (fieldDB.fieldId === "_id") {
+                            if (fieldDB.fieldId === "_id" || fieldDB.fieldId === "_idFK") {
                                 fieldDB.delete = false;
                                 fieldDB.changeType = false;
                             } else {
@@ -538,7 +555,12 @@ function buildObject(id, cb) {
 
                 } else {//table not exist
                     //var sql = "CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))";
-
+                    var FKField = '';
+                    var FKLink = ''
+                    if(doc.mainTableName){
+                        FKField = ', _idFK varchar(255) ';
+                        FKLink = ', FOREIGN KEY (_idFK) REFERENCES '+doc.mainTableName+'(_id)';
+                    }
 
                     var sql = "CREATE TABLE " + doc.name + " (";
                     for (var i = 0; i < doc.fields.length; i++) {
@@ -548,7 +570,7 @@ function buildObject(id, cb) {
 
                     }
                     sql = sql.substring(0, sql.length - 1);
-                    sql = sql + ", _id varchar(255) not null, PRIMARY KEY (_id))";
+                    sql = sql + ", _id varchar(255) not null"+FKField+", PRIMARY KEY (_id)"+FKLink+")";
                     con.query(sql, function (err, result) {
                         if (err) {
                             res.status = 500;
@@ -594,8 +616,9 @@ app.post('/build', function (req, resp) {
 
     var objectData = (req.body);
     if (req.body.id) {
+        
 
-        buildObject(objectData.id, function (data) {
+        buildObject(objectData.id, req.body.tpId, function (data) {
             //console.log(JSON.stringify(data));
             resp.send(data);
             //console.log(JSON.stringify(data))
@@ -873,16 +896,16 @@ class FormRenderer {
 
         this.fillLayoutNode(this.structure[0], this.layout_struct);
         var layoutContId = this.structure[0].id;
-        this.code = "var mainLayout = new dhx.Layout('"+layoutContId+"', " + JSON.stringify(this.layout_struct) + ");\n"+this.code;
-        
+        this.code = "var mainLayout = new dhx.Layout('" + layoutContId + "', " + JSON.stringify(this.layout_struct) + ");\n" + this.code;
+
         //this.code = "<script>\n"+this.code;
         //this.html = "<div id='"+layoutContId+"' ></div>\n";
         //this.code += "</script>\n";
-        
+
         //this.parcel.code = this.code;
         //this.parcel.html = this.html;
-        
-        
+
+
     }
 
     fillLayoutNode(structure, layoutObj) {
@@ -911,10 +934,10 @@ class FormRenderer {
                     var formConf = {};
                     this.renderForm(structure.items[i], formConf);
                     var formName = structure.items[i].id.split('-').join('');
-                    
-                    this.code += "var "+formName+" = new dhx.Form(null, " + JSON.stringify(formConf) + ");\n";
-                    this.code += "mainLayout.cell('"+structure.id+"').attach("+formName+");\n";
-                    
+
+                    this.code += "var " + formName + " = new dhx.Form(null, " + JSON.stringify(formConf) + ");\n";
+                    this.code += "mainLayout.cell('" + structure.id + "').attach(" + formName + ");\n";
+
                 }
 
             }
@@ -954,7 +977,7 @@ class FormRenderer {
                     //cell.width = "150px";
                     cell.gravity = false;
                     cell.labelInline = true;
-                    
+
                     var dataField = {};
                     for (var k = 0; k < this.doc.fields.length; k++) {
                         if (this.doc.fields[k].fieldId === cell.id) {
@@ -969,18 +992,18 @@ class FormRenderer {
                     if (dataField.type === 'String' || dataField.type === 'Extend') {
                         cell.type = 'input';
                         cell.label = dataField.alias;
-                        cell.cellCss =  "ht"
+                        cell.cellCss = "ht"
                     }
                     if (dataField.type === 'Integer') {
                         cell.type = 'input';
                         cell.label = dataField.alias;
-                        cell.cellCss =  "ht"
+                        cell.cellCss = "ht"
                         cell.validation = "integer";
                     }
                     if (dataField.type === 'Numeric') {
                         cell.type = 'input';
                         cell.label = dataField.alias;
-                        cell.cellCss =  "ht"
+                        cell.cellCss = "ht"
                         cell.validation = "numeric";
                     }
                     formConf.push(cell);

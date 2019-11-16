@@ -1967,7 +1967,34 @@ and open the template in the editor.
                     if (_id === 'add') {
                         showTablePartProp(data._id, null, true, null, listTP);
                     }
+                    if (_id === 'save') {
+                        if (!listTP.selection.getId()) {
+                            alert("Select Table Part");
+                            return;
+                        }
+                        var parcel = {};
+                        parcel.id = data._id;
+                        parcel.tpId = listTP.selection.getId();
+                        $.ajax({
+                            type: "post",
+                            async: false,
+                            url: "/build",
+                            //headers: {"Access-Control-Allow-Origin": "*"},
+                            data: parcel,
+                            success: function (data) {
+                                alert(JSON.stringify(data.text));
+
+
+                            }
+                        });
+
+
+                    }
                     if (_id === 'delete') {
+                        if (!listTP.selection.getId()) {
+                            alert("Select Table Part");
+                            return;
+                        }
                         if (confirm('Delete Table Part?')) {
                             getObject(data._id, function (doc) {
                                 var itemID = listTP.selection.getId();

@@ -591,7 +591,7 @@ and open the template in the editor.
 
             }
             function showTablePartProp(objId, tpId, isNew, currTPObj, list) {
-                
+
                 var titleP = "";
                 if (isNew) {
                     titleP = "Create new of TableParts"
@@ -678,7 +678,7 @@ and open the template in the editor.
 
 
                             if (isNew) {
-                                
+
                                 getObject(objId, function (obj) {
                                     tablePartObj.fields = [];
                                     tablePartObj.listForm = [];
@@ -688,9 +688,9 @@ and open the template in the editor.
                                         form.destructor();
                                         formBtn.destructor();
                                         if (result.status === 200) {
-                                            loadTableParts(list,objId);
+                                            loadTableParts(list, objId);
                                             alert('Updated!');
-                                            
+
                                         } else {
                                             alert(JSON.stringify(result));
                                         }
@@ -717,7 +717,7 @@ and open the template in the editor.
                                     form.destructor();
                                     formBtn.destructor();
                                     if (result.status === 200) {
-                                        loadTableParts(list,objId);
+                                        loadTableParts(list, objId);
                                         alert('Updated!');
                                     } else {
                                         alert(JSON.stringify(result));
@@ -740,7 +740,7 @@ and open the template in the editor.
                 getObject(objId, function (obj) {
                     var data = [];
                     if (obj.tableParts) {
-                        
+
                         for (var i = 0; i < obj.tableParts.length; i++) {
                             var dataElement = {};
                             dataElement.value = obj.tableParts[i].alias;
@@ -748,7 +748,7 @@ and open the template in the editor.
                             data.push(dataElement);
                         }
                         list.data.parse(data);
-                        
+
                     }
                 });
             }
@@ -1841,27 +1841,22 @@ and open the template in the editor.
                                     ]
 
                                 },
-                                {id: "fieldsTP", header: "All fields", width: 250, gravity: true,
-                                    css: "dhx_layout-cell--border_right", height: "700px",
+                                {
                                     rows: [
+                                        {id: 'toolBarTPFields', height: "120px", header: "Table part's fields",},
                                         {
-                                            id: "toolBar",
-                                            height: "80px",
-                                            gravity: false
-                                        },
-                                        {
-                                            id: "content",
-                                            gravity: false
-                                        }
-                                    ]
+                                            cols: [
+                                                {id: "fieldsTP", header: "All fields", gravity: true,
+                                                    css: "dhx_layout-cell--border_right", height: "700px"
+                                                },
 
-                                },
+                                                {id: "formListFields", header: "Form List Fields", gravity: true,
+                                                    //css: "dhx_layout-cell--border_left",
+                                                    height: "700px",
 
-                                {id: "formListFields", header: "Form List Fields", gravity: true,
-                                    //css: "dhx_layout-cell--border_left",
-                                    height: "700px",
-
-                                }
+                                                }
+                                            ]}
+                                    ]}
                             ]}
                     ]
                 });
@@ -1911,13 +1906,45 @@ and open the template in the editor.
                 });
 //                loadFielsdList(list, data._id, tablePartId);
 //                loadFielsdListForm(listForm, data._id, tablePartId);
+                layoutObjConfContentTP.cell('fieldsTP').attach(list);
+                layoutObjConfContentTP.cell('formListFields').attach(listForm);
+
                 loadTableParts(listTP, data._id);
                 layoutObjConfContentTP.cell('contentTP').attach(listTP);
                 var toolbarTP = createSmallToolBar();
+                var toolbarTPFields = createSmallToolBar();
                 layoutObjConfContentTP.cell('toolBarTP').attach(toolbarTP);
+                layoutObjConfContentTP.cell('toolBarTPFields').attach(toolbarTPFields);
                 toolbarTP.events.on("Click", function (_id, e) {
                     if (_id === 'add') {
-                        showTablePartProp(data._id, null, true, null,listTP);
+                        showTablePartProp(data._id, null, true, null, listTP);
+                    }
+                    if (_id === 'delete') {
+                        if (confirm('Delete Table Part?')) {
+                            getObject(data._id, function (doc) {
+                                var itemID = listTP.selection.getId();
+                                //alert(JSON.stringify(doc.tableParts));
+                                //alert(itemID);
+                                for (var i = 0; i < doc.tableParts.length; i++) {
+                                    if (doc.tableParts[i].id === itemID) {
+                                        doc.tableParts.splice(i, 1);
+                                        listTP.data.remove(itemID);
+                                        updateObject(doc, function (res) {
+                                            if (res.status === 200) {
+                                                alert('Updated!');
+                                            } else {
+                                                alert(JSON.stringify(result));
+                                            }
+                                        })
+                                        break;
+                                    }
+
+
+                                }
+                            });
+                        }
+
+
                     }
                 });
 

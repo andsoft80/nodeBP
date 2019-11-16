@@ -652,6 +652,7 @@ and open the template in the editor.
                 if (!isNew) {
 
                     //getObject(objId, function (result) {
+                    //alert(JSON.stringify(currTPObj));
                     form.setValue({name: currTPObj.id, alias: currTPObj.value});
 
                     //});
@@ -702,8 +703,20 @@ and open the template in the editor.
                                 getObject(objId, function (obj) {
                                     for (var i = 0; i < obj.tableParts.length; i++) {
                                         if (obj.tableParts[i].id === tpId) {
-                                            obj.id = form.getValue().name;
-                                            obj.alias = form.getValue().alias;
+                                            //obj.id = form.getValue().name;
+                                            obj.tableParts[i].alias = form.getValue().alias;
+                                            obj.__v = obj.__v + 1;
+
+                                            updateObject(obj, function (result) {
+                                                form.destructor();
+                                                formBtn.destructor();
+                                                if (result.status === 200) {
+                                                    loadTableParts(list, objId);
+                                                    alert('Updated!');
+                                                } else {
+                                                    alert(JSON.stringify(result));
+                                                }
+                                            });
                                             break;
                                         }
                                     }
@@ -711,18 +724,7 @@ and open the template in the editor.
 
 
 
-                                obj.__v = obj.__v + 1;
 
-                                updateObject(obj, function (result) {
-                                    form.destructor();
-                                    formBtn.destructor();
-                                    if (result.status === 200) {
-                                        loadTableParts(list, objId);
-                                        alert('Updated!');
-                                    } else {
-                                        alert(JSON.stringify(result));
-                                    }
-                                });
                             }
                         } else {
                             alert("Input id and alias of object!");
@@ -809,11 +811,24 @@ and open the template in the editor.
                 }
                 return fields;
             }
-            function saveFields(objId, list) {
+            function saveFields(objId, list, tpId) {
+
                 var fields = getFields(list);
 
+
                 getObject(objId, function (obj) {
-                    obj.fields = fields;
+                    if (tpId) {
+
+                        for (var i = 0; i < obj.tableParts.length; i++) {
+                            if (obj.tableParts[i].id === tpId) {
+                                obj.tableParts[i].fields = fields;
+                                break;
+                            }
+                        }
+                    } else {
+                        obj.fields = fields;
+                    }
+
                     updateObject(obj, function (result) {
 
                     });
@@ -821,11 +836,22 @@ and open the template in the editor.
                 });
 
             }
-            function saveFieldsListForm(objId, list) {
+            function saveFieldsListForm(objId, list, tpId) {
                 var fields = getFields(list);
 
                 getObject(objId, function (obj) {
-                    obj.listForm = fields;
+                    if (tpId) {
+
+                        for (var i = 0; i < obj.tableParts.length; i++) {
+                            if (obj.tableParts[i].id === tpId) {
+                                obj.tableParts[i].listForm = fields;
+                                break;
+                            }
+                        }
+                    } else {
+                        obj.listForm = fields;
+                    }
+
                     updateObject(obj, function (result) {
 
                     });
@@ -833,7 +859,7 @@ and open the template in the editor.
                 });
 
             }
-            function editField(data, list, listForm, field) {
+            function editField(data, list, listForm, field, tpId) {
 
                 var rows = [
 
@@ -1066,14 +1092,28 @@ and open the template in the editor.
                                     }
 
                                 }
-                                objectModel.fields = fields;
-                                objectModel.listForm = fieldsList;
+                                if (tpId) {
+                                    for (var i = 0; i < objectModel.tableParts.length; i++) {
+                                        if (objectModel.tableParts[i].id === tpId) {
+                                            objectModel.tableParts[i].fields = fields;
+                                            objectModel.tableParts[i].listForm = fieldsList;
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    objectModel.fields = fields;
+                                    objectModel.listForm = fieldsList;
+                                }
                                 //alert(JSON.stringify(newField));
                                 //alert(JSON.stringify(objectModel));
                                 updateObject(objectModel, function (result) {
                                     form.destructor();
                                     form2.destructor();
-                                    loadFielsdList(list, data._id);
+                                    if (tpId) {
+                                        loadFielsdList(list, data._id, tpId);
+                                    } else {
+                                        loadFielsdList(list, data._id);
+                                    }
                                     if (result.status === 200) {
                                         alert('Updated!');
                                     } else {
@@ -1554,7 +1594,7 @@ and open the template in the editor.
                     css: "dhx_widget--bordered baseheight",
                     multiselection: false,
                     template: function (item) {
-                        var val = "<strong>" + item.value.fieldId + " </strong>" + JSON.stringify(item.value);
+                        var val = "<strong>" + item.value.fieldId + " </strong>";// + JSON.stringify(item.value);
                         return val;
                     }
                 });
@@ -1843,11 +1883,11 @@ and open the template in the editor.
                                 },
                                 {
                                     rows: [
-                                        {id: 'toolBarTPFields', height: "120px", header: "Table part's fields",},
+                                        {id: 'toolBarTPFields', height: "120px", header: "Table part's fields", },
                                         {
                                             cols: [
                                                 {id: "fieldsTP", header: "All fields", gravity: true,
-                                                    css: "dhx_layout-cell--border_right", height: "700px"
+                                                    css: "dhx_layout-cell--border_right", width: 300, height: "700px"
                                                 },
 
                                                 {id: "formListFields", header: "Form List Fields", gravity: true,
@@ -1869,7 +1909,7 @@ and open the template in the editor.
                     css: "dhx_widget--bordered baseheight",
                     multiselection: false,
                     template: function (item) {
-                        var val = "<strong>" + item.value.fieldId + " </strong>" + JSON.stringify(item.value);
+                        var val = "<strong>" + item.value.fieldId + " </strong>";// + JSON.stringify(item.value);
                         return val;
                     }
                 });
@@ -1899,10 +1939,18 @@ and open the template in the editor.
                 });
                 list.events.on("Click", function (id, e) {
                     listForm.selection.remove(listForm.selection.getId());
+                    var item = list.data.getItem(id);
+                    editField(data, list, listForm, item.value, listTP.selection.getId());
                 });
 
                 listForm.events.on("Click", function (id, e) {
                     list.selection.remove(list.selection.getId());
+                });
+                listTP.events.on("Click", function (id, e) {
+                    var tpId = listTP.selection.getId();
+                    showTablePartProp(data._id, tpId, false, listTP.selection.getItem(), listTP);
+                    loadFielsdList(list, data._id, listTP.selection.getId());
+                    loadFielsdListForm(listForm, data._id, listTP.selection.getId());
                 });
 //                loadFielsdList(list, data._id, tablePartId);
 //                loadFielsdListForm(listForm, data._id, tablePartId);
@@ -1947,6 +1995,72 @@ and open the template in the editor.
 
                     }
                 });
+
+                toolbarTPFields.events.on("Click", function (_id, e) {
+                    if (_id === 'add') {
+                        if (!listTP.selection.getId()) {
+                            alert("Select Table Part");
+                            return;
+                        }
+                        editField(data, list, listForm, null, listTP.selection.getId());
+                    }
+                    ;
+                    if (_id === 'delete') {
+                        if (!listTP.selection.getId()) {
+                            alert("Select Table Part");
+                            return;
+                        }
+                        if (confirm("Delete field?")) {
+                            var selid = list.selection.getId();
+                            var selItem = list.selection.getItem();
+                            //var selid = list.getFocusItem();
+                            if (selid) {
+
+                                var arr = [];
+                                listForm.data.map(function (item) {
+                                    //alert(JSON.stringify(item));
+                                    if (item.value.fieldId === selItem.value.fieldId) {
+                                        //listForm.data.remove(item.id);
+                                        arr.push(item);
+                                    }
+                                });
+
+                                for (var i = 0; i < arr.length; i++) {
+                                    listForm.data.remove(arr[i].id);
+                                }
+                                list.data.remove(selid);
+                                saveFields(data._id, list, listTP.selection.getId());
+                                saveFieldsListForm(data._id, listForm, listTP.selection.getId());
+                            }
+
+                            var selid = listForm.selection.getId();
+                            //var selid = listForm.getFocusItem();
+                            if (selid) {
+                                listForm.data.remove(selid);
+                                saveFieldsListForm(data._id, listForm, listTP.selection.getId());
+                            }
+
+                            alert('Done!');
+                        } else {
+
+                        }
+                    }
+                    ;
+
+                    if (_id === 'save') {
+                        if (!listTP.selection.getId()) {
+                            alert("Select Table Part");
+                            return;
+                        }
+                        saveFields(data._id, list, listTP.selection.getId());
+                        saveFieldsListForm(data._id, listForm, listTP.selection.getId());
+                        alert('Done!');
+
+                    }
+
+                });
+
+
 
             }
 //<--ObjectConfigurator//////////////////////////////////////////////////////

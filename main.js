@@ -415,7 +415,7 @@ function buildObject(id, tpId, cb) {
                         tpDoc.objectType = doc.objectType;
                         tpDoc.fields = doc.tableParts[i].fields;
                         tpDoc.listForm = doc.tableParts[i].listForm;
-                        tpDoc.name = tpId;
+                        tpDoc.name = doc.name+'_'+tpId;
                         tpDoc.mainTableName = doc.name;
                         doc = tpDoc;
                         break;
@@ -425,26 +425,28 @@ function buildObject(id, tpId, cb) {
             }
 
             //if (doc.fields.length > 0) {
-            //console.log(doc.fields.length);
-            if (doc.objectType === "dir" || doc.objectType === "doc") {
-                var haveId = false;
-                var haveName = false;
-                for (var i = 0; i < doc.listForm.length; i++) {
-                    if (doc.listForm[i].fieldId === 'id') {
-                        haveId = true;
+            //console.log(doc.fields.length);'
+            if (!tpId) {
+                if (doc.objectType === "dir" || doc.objectType === "doc") {
+                    var haveId = false;
+                    var haveName = false;
+                    for (var i = 0; i < doc.listForm.length; i++) {
+                        if (doc.listForm[i].fieldId === 'id') {
+                            haveId = true;
 
-                    }
-                    if (doc.listForm[i].fieldId === 'name') {
-                        haveName = true;
+                        }
+                        if (doc.listForm[i].fieldId === 'name') {
+                            haveName = true;
 
+                        }
                     }
-                }
-                if (!haveId || !haveName) {
-                    res.status = 500;
-                    res.text = "List Form of " + doc.name + " have not id or name field!";
-                    //con.end();
-                    cb(res);
-                    return;
+                    if (!haveId || !haveName) {
+                        res.status = 500;
+                        res.text = "List Form of " + doc.name + " have not id or name field!";
+                        //con.end();
+                        cb(res);
+                        return;
+                    }
                 }
             }
             var sqlStr = "show tables like " + "'" + doc.name + "'";
@@ -557,9 +559,9 @@ function buildObject(id, tpId, cb) {
                     //var sql = "CREATE TABLE customers (name VARCHAR(255), address VARCHAR(255))";
                     var FKField = '';
                     var FKLink = ''
-                    if(doc.mainTableName){
+                    if (doc.mainTableName) {
                         FKField = ', _idFK varchar(255) ';
-                        FKLink = ', FOREIGN KEY (_idFK) REFERENCES '+doc.mainTableName+'(_id)';
+                        FKLink = ', FOREIGN KEY (_idFK) REFERENCES ' + doc.mainTableName + '(_id)';
                     }
 
                     var sql = "CREATE TABLE " + doc.name + " (";
@@ -570,7 +572,7 @@ function buildObject(id, tpId, cb) {
 
                     }
                     sql = sql.substring(0, sql.length - 1);
-                    sql = sql + ", _id varchar(255) not null"+FKField+", PRIMARY KEY (_id)"+FKLink+")";
+                    sql = sql + ", _id varchar(255) not null" + FKField + ", PRIMARY KEY (_id)" + FKLink + ")";
                     con.query(sql, function (err, result) {
                         if (err) {
                             res.status = 500;
@@ -616,7 +618,7 @@ app.post('/build', function (req, resp) {
 
     var objectData = (req.body);
     if (req.body.id) {
-        
+
 
         buildObject(objectData.id, req.body.tpId, function (data) {
             //console.log(JSON.stringify(data));

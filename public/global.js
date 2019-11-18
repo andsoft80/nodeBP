@@ -86,7 +86,11 @@ function buildTableLayout(id, mode, win, cb, cbb) {
                         for (var i = 0; i < object.listForm.length; i++) {
                             if (object.listForm[i].type === 'Integer' || object.listForm[i].type === 'Numeric') {
                                 newItem[object.listForm[i].fieldId] = 0;
-                            } else {
+                            }
+                            else if(object.listForm[i].type === 'Date'){
+                                 newItem[object.listForm[i].fieldId] = '0000-00-00 00:00:00';
+                            }
+                            else {
                                 newItem[object.listForm[i].fieldId] = null;
                             }
                         }
@@ -205,8 +209,29 @@ function buildTableLayout(id, mode, win, cb, cbb) {
                     });
                 }
                 if (id === "save") {
+                    if(!selectItem){
+                        alert('Select item!');
+                        return;
+                        
+                    }
 
                     if (selectItem._id) {
+                        
+                        
+                        for (var j = 0; j < object.fields.length; j++) {
+                            if (object.fields[j].type === 'Integer' || object.fields[j].type === 'Numeric') {
+                                if (selectItem[object.fields[j].fieldId] == null) {
+                                    selectItem[object.fields[j].fieldId] = 0;
+                                }
+                            }
+                            if (object.fields[j].type === 'Date') {
+                                if (selectItem[object.fields[j].fieldId] == null) {
+                                    selectItem[object.fields[j].fieldId] = '00.00.0000';
+                                }
+                            }                            
+                        }
+                        
+
                         $.ajax({
                             type: "post",
                             //async: false,
@@ -287,10 +312,10 @@ function buildTableLayout(id, mode, win, cb, cbb) {
             var newField = {};
 
             if (field.type === "String" || field.type === "Extend") {
-                newField.width = 300;
+                newField.width = 250;
                 //newField.maxWidth  = 350;
             } else {
-                newField.width = 120;
+                newField.width = 150;
                 //newField.maxWidth  = 250;
             }
             if (field.type === 'Extend') {
@@ -309,6 +334,9 @@ function buildTableLayout(id, mode, win, cb, cbb) {
                 newField.id = field.fieldId;
                 newField.header = field.alias;
             }
+            if (field.type === "Integer" || field.type === "Numeric") {
+                newField.type = 'number';
+            }
             cols.push(newField);
 
         }
@@ -319,11 +347,11 @@ function buildTableLayout(id, mode, win, cb, cbb) {
             rowHeight: rh + 2,
             //data: dataset,
             selection: "complex",
-            resizable: true
-                    //height: 200,
+            resizable: true,
+            //height: 200,
 
-                    //columnsAutoWidth : true
-                    //fitToContainer : true
+            //columnsAutoWidth : true
+            //fitToContainer : true
 
         });
 
@@ -390,9 +418,7 @@ function buildTableLayout(id, mode, win, cb, cbb) {
                 }
 
 
-            } 
-            
-            else {
+            } else {
                 var result = {};
                 result.id = row._id;
                 result.name = row.name;
@@ -450,7 +476,7 @@ function buildTableLayout(id, mode, win, cb, cbb) {
     });
 }
 function showListForm(id, mode, cb) {
-    getObject(id, function(doc){
+    getObject(id, function (doc) {
 
         $(".dhx_popup--window_active").removeClass("dhx_popup--window_active");
         var dhxWindow = new dhx.Window({
@@ -464,9 +490,10 @@ function showListForm(id, mode, cb) {
 
 
         });
-        buildTableLayout(id, mode, dhxWindow,  cb, function(res){
+        buildTableLayout(id, mode, dhxWindow, cb, function (res) {
             dhxWindow.attach(res);
-        });       
+
+        });
 
         var toFull = true;
 
@@ -478,6 +505,10 @@ function showListForm(id, mode, cb) {
             } else {
 
                 dhxWindow.setSize(restore.width, restore.height);
+                buildTableLayout(id, mode, dhxWindow, cb, function (res) {
+                    dhxWindow.attach(res);
+
+                });
 
 
             }

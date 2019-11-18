@@ -415,7 +415,7 @@ function buildObject(id, tpId, cb) {
                         tpDoc.objectType = doc.objectType;
                         tpDoc.fields = doc.tableParts[i].fields;
                         tpDoc.listForm = doc.tableParts[i].listForm;
-                        tpDoc.name = doc.name+'_'+tpId;
+                        tpDoc.name = doc.name + '_' + tpId;
                         tpDoc.mainTableName = doc.name;
                         doc = tpDoc;
                         break;
@@ -895,23 +895,26 @@ class FormRenderer {
         //this.parcel = {};
         this.layout_struct = {};
         this.structure = doc.elementForm;
+        if (this.structure[0]) {
 
-        this.fillLayoutNode(this.structure[0], this.layout_struct);
-        var layoutContId = this.structure[0].id;
-        this.code = "var mainLayout = new dhx.Layout('" + layoutContId + "', " + JSON.stringify(this.layout_struct) + ");\n" + this.code;
 
-        //this.code = "<script>\n"+this.code;
-        //this.html = "<div id='"+layoutContId+"' ></div>\n";
-        //this.code += "</script>\n";
 
-        //this.parcel.code = this.code;
-        //this.parcel.html = this.html;
+            this.fillLayoutNode(this.structure[0], this.layout_struct);
+            var layoutContId = this.structure[0].id;
+            this.code = "var mainLayout = new dhx.Layout('" + layoutContId + "', " + JSON.stringify(this.layout_struct) + ");\n" + this.code;
 
+            //this.code = "<script>\n"+this.code;
+            //this.html = "<div id='"+layoutContId+"' ></div>\n";
+            //this.code += "</script>\n";
+
+            //this.parcel.code = this.code;
+            //this.parcel.html = this.html;
+        }
 
     }
 
     fillLayoutNode(structure, layoutObj) {
-        if (structure.items) {
+        if (structure) {
             for (var i = 0; i < structure.items.length; i++) {
 
                 if (structure.items[i].id.indexOf('rows_') === 0) {

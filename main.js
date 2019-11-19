@@ -997,19 +997,29 @@ class FormRenderer {
                     if (dataField.type === 'String' || dataField.type === 'Extend') {
                         cell.type = 'input';
                         cell.label = dataField.alias;
-                        cell.cellCss = "ht"
+                        cell.cellCss = "ht";
                     }
                     if (dataField.type === 'Integer') {
                         cell.type = 'input';
                         cell.label = dataField.alias;
-                        cell.cellCss = "ht"
+                        cell.cellCss = "ht";
                         cell.validation = "integer";
                     }
                     if (dataField.type === 'Numeric') {
                         cell.type = 'input';
                         cell.label = dataField.alias;
-                        cell.cellCss = "ht"
+                        cell.cellCss = "ht";
                         cell.validation = "numeric";
+                    }
+                    if (dataField.type === 'Date') {
+                        cell.type = "datepicker";
+                        cell.label = dataField.alias;
+                        cell.cellCss = "ht";
+                        
+                        cell.weekStart = 'monday';
+                        cell.dateFormat = '%d.%m.%Y %H:%i';
+                        cell.timePicker = true;
+                        cell.timeFormat = 24;
                     }
                     formConf.push(cell);
                     //console.log(JSON.stringify(layoutObj));

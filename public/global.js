@@ -3,7 +3,7 @@ var editCell = {};
 var rh = 23;
 var hh = 23;
 
-function buildTableLayout(id, mode, win, cb, cbb) {
+function buildTableLayout(id, mode, win, tpId, cb, cbb) {
     var needSave = false;
     var selectItem = null;
     var selectCol = null;
@@ -11,6 +11,26 @@ function buildTableLayout(id, mode, win, cb, cbb) {
     var rh = 23;
     var hh = 23;
     getObject(id, function (object) {
+
+        if (tpId) {
+            var findTp = false;
+            var tpObject = {};
+            for (var i = 0; i < object.tableParts.length; i++) {
+                if (object.tableParts[i].id === tpId) {
+                    findTp = true;
+                    tpObject.fields = object.tableParts[i].fields;
+                    tpObject.listForm = object.tableParts[i].listForm;
+                    tpObject.name = object.name+'_'+object.tableParts[i].id;
+                    object = tpObject;
+                    break;
+                }
+            }
+            if(!findTp){
+                cbb(null);
+            }
+
+        }
+
 
         var layout = new dhx.Layout(null, {
             rows: [
@@ -86,11 +106,9 @@ function buildTableLayout(id, mode, win, cb, cbb) {
                         for (var i = 0; i < object.listForm.length; i++) {
                             if (object.listForm[i].type === 'Integer' || object.listForm[i].type === 'Numeric') {
                                 newItem[object.listForm[i].fieldId] = 0;
-                            }
-                            else if(object.listForm[i].type === 'Date'){
-                                 newItem[object.listForm[i].fieldId] = '0000-00-00 00:00:00';
-                            }
-                            else {
+                            } else if (object.listForm[i].type === 'Date') {
+                                newItem[object.listForm[i].fieldId] = '0000-00-00 00:00:00';
+                            } else {
                                 newItem[object.listForm[i].fieldId] = null;
                             }
                         }
@@ -209,15 +227,15 @@ function buildTableLayout(id, mode, win, cb, cbb) {
                     });
                 }
                 if (id === "save") {
-                    if(!selectItem){
+                    if (!selectItem) {
                         alert('Select item!');
                         return;
-                        
+
                     }
 
                     if (selectItem._id) {
-                        
-                        
+
+
                         for (var j = 0; j < object.fields.length; j++) {
                             if (object.fields[j].type === 'Integer' || object.fields[j].type === 'Numeric') {
                                 if (selectItem[object.fields[j].fieldId] == null) {
@@ -225,12 +243,12 @@ function buildTableLayout(id, mode, win, cb, cbb) {
                                 }
                             }
                             if (object.fields[j].type === 'Date') {
-                                if (selectItem[object.fields[j].fieldId] == null) {
-                                    selectItem[object.fields[j].fieldId] = '00.00.0000';
+                                if (selectItem[object.fields[j].fieldId] === null) {
+                                    selectItem[object.fields[j].fieldId] = '00.00.0000 00:00';
                                 }
-                            }                            
+                            }
                         }
-                        
+
 
                         $.ajax({
                             type: "post",
@@ -490,7 +508,7 @@ function showListForm(id, mode, cb) {
 
 
         });
-        buildTableLayout(id, mode, dhxWindow, cb, function (res) {
+        buildTableLayout(id, mode, dhxWindow, null, cb, function (res) {
             dhxWindow.attach(res);
 
         });

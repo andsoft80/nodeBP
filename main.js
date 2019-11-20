@@ -888,7 +888,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 //////////////////////////////////////////////
 class FormRenderer {
 
-    constructor(doc) {
+    constructor(doc, recId) {
         this.doc = doc;
         this.code = "";
         //this.html = "";
@@ -942,6 +942,14 @@ class FormRenderer {
 
                     this.code += "var " + formName + " = new dhx.Form(null, " + JSON.stringify(formConf) + ");\n";
                     this.code += "mainLayout.cell('" + structure.id + "').attach(" + formName + ");\n";
+
+                }
+                if (structure.items[i].id.indexOf('tp_') === 0) {
+                    
+                    var tpName = structure.items[i].id.split('-').join('');
+
+                    this.code += "var " + tpName + " = ''";
+                    this.code += "mainLayout.cell('" + structure.id + "').attach(" + tpName + ");\n";
 
                 }
 
@@ -1015,7 +1023,7 @@ class FormRenderer {
                         cell.type = "datepicker";
                         cell.label = dataField.alias;
                         cell.cellCss = "ht";
-                        
+
                         cell.weekStart = 'monday';
                         cell.dateFormat = '%d.%m.%Y %H:%i';
                         cell.timePicker = true;
@@ -1036,68 +1044,11 @@ class FormRenderer {
 
 
 
-//function renderForm(structure) {
-//    var formConf = {};
-//
-//    return formConf;
-//}
 
-//function fillLayoutNode(structure, layoutObj) {
-//    if (structure.items) {
-//        for (var i = 0; i < structure.items.length; i++) {
-////        if (structure.items[i].id.indexOf('cell_') === 0) {
-////            var cell = {};
-////            cell.id = structure.items[i].id;
-////            currLSArr.push(cell);
-////        }
-//            if (structure.items[i].id.indexOf('rows_') === 0) {
-//
-//                layoutObj.rows = [];
-//                //console.log(JSON.stringify(layoutObj));
-//                fillLayoutNode(structure.items[i], layoutObj.rows);
-//            }
-//            if (structure.items[i].id.indexOf('cols_') === 0) {
-//                layoutObj.cols = [];
-//                //console.log(JSON.stringify(layoutObj));
-//                fillLayoutNode(structure.items[i], layoutObj.cols)
-//            }
-//            if (structure.items[i].id.indexOf('cell_') === 0) {
-//                var cell = {};
-//                cell.id = structure.items[i].id;
-//                layoutObj.push(cell);
-//                //console.log(JSON.stringify(layoutObj));
-//                fillLayoutNode(structure.items[i], layoutObj[layoutObj.length - 1]);
-//            }
-//
-//        }
-//    }
-//}
-
-//function parseObj(doc, cb) {
-//    var code = "";
-//    var layout_struct = {};
-//    var structure = doc.elementForm;
-//    //fillLayoutNode(doc.elementForm[0].id, structure[0], layout_struct);
-////    if (structure[0].items[0].id.indexOf('rows_') === 0) {
-////        layout_struct.rows = [];
-////        fillLayoutNode(structure[0].items[0], layout_struct.rows);
-////
-////    } else {
-////        layout_struct.cols = [];
-////        fillLayoutNode(structure[0].items[0], layout_struct.cols);
-////    }
-//    fillLayoutNode(structure[0], layout_struct);
-//
-//
-//    //console.log(JSON.stringify(layout_struct));
-//
-//    code += "var mainLayout = new dhx.Layout(null, " + JSON.stringify(layout_struct) + ");\n";
-//    cb(code);
-//}
 
 app.get('/formrender/:id', function (req, res) {
 
-
+    var recId = req.body.recId;
     var query = MetaData.findById(req.params.id);
     query.exec(function (err, doc) {
         if (err)
@@ -1109,7 +1060,7 @@ app.get('/formrender/:id', function (req, res) {
 //        parseObj(doc, function (data) {
 //            res.send(data);
 //        });
-        var fr = new FormRenderer(doc);
+        var fr = new FormRenderer(doc, recId);
         res.send(fr.code);
 
     });

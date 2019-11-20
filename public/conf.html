@@ -1357,6 +1357,18 @@ and open the template in the editor.
                         return false;
                     }
 
+                    if (id.indexOf('cell_') !== 0 && dragId.indexOf('tp_') === 0) {
+                        alert("Table Parts can add in layout cell only!");
+                        return false;
+                    }
+
+                    if (id.indexOf('cell_') === 0) {
+                        if (treeForm.data.haveItems(id)) {
+                            alert('In layout cell can be only one component!');
+                            return false;
+                        }
+
+                    }
                     var state = treeForm.getState();
                     if (state[dragId]) {
                         alert("Field " + dragName + " already exist!");
@@ -1394,6 +1406,11 @@ and open the template in the editor.
                     treeData.data.add({value: data.fields[i].fieldId, id: 'fld_' + data.fields[i].fieldId}, treeData.data.getItems("fields").length, "fields");
                 }
 
+                for (var i = 0; i < data.tableParts.length; i++) {
+
+                    treeData.data.add({value: data.tableParts[i].id, id: 'tp_' + data.tableParts[i].id}, treeData.data.getItems("tableParts").length, "tableParts");
+                }
+
                 var toolBar = createSmallToolBar();
                 var toolBarData = createSmallToolBar();
                 toolBarData.data.remove("add");
@@ -1404,10 +1421,10 @@ and open the template in the editor.
                     icon: "fa fa-retweet",
                     //size: "small",
                     value: "",
-                    id: 'refrash',
+                    id: 'refresh',
                     "view": "link",
                     //"color": "secondary",
-                    tooltip: "Refrash items"
+                    tooltip: "Refresh items"
                 }, );
                 toolBarData.data.add({
                     type: "button",
@@ -1436,6 +1453,15 @@ and open the template in the editor.
                 layoutObjConfContentForms.cell('contentData').attach(treeData);
                 layoutObjConfContentForms.cell('content').attach(treeForm);
                 toolBar.events.on("Click", function (id, e) {
+                    
+                    if ((treeForm.selection.getId().indexOf('cell_') === 0 || treeForm.selection.getId().indexOf('form_')===0)) {
+                        if (treeForm.data.haveItems(treeForm.selection.getId()) && toolBar.data.getParent(id)==='add') {
+                            alert('In layout cell can be only one component!');
+                            return false;
+                        }
+
+                    }
+
                     if (id === 'form') {
                         treeForm.data.add({value: "Form", id: 'form_' + uuidv4()}, treeForm.data.getItems(treeForm.selection.getId()).length, treeForm.selection.getId());
                     }
@@ -1583,6 +1609,31 @@ and open the template in the editor.
                         });
                     }
 
+                    if (id === 'refresh') {
+                        var items = treeData.data.getItems("fields");
+                        for (var i = 0; i < items.length; i++) {
+                            treeData.data.remove(items[i].id);
+
+                        }
+
+                        var items = treeData.data.getItems("tableParts");
+                        for (var i = 0; i < items.length; i++) {
+                            treeData.data.remove(items[i].id);
+
+                        }
+                        getObject(data._id, function (doc) {
+                            for (var i = 0; i < doc.fields.length; i++) {
+
+                                treeData.data.add({value: doc.fields[i].fieldId, id: 'fld_' + doc.fields[i].fieldId}, treeData.data.getItems("fields").length, "fields");
+                            }
+                            for (var i = 0; i < doc.tableParts.length; i++) {
+
+                                treeData.data.add({value: doc.tableParts[i].id, id: 'tp_' + doc.tableParts[i].id}, treeData.data.getItems("tableParts").length, "tableParts");
+                            }
+                        });
+
+
+                    }
                 });
 
             }
@@ -1861,12 +1912,12 @@ and open the template in the editor.
 
 
             function createTablePartsTab(tabbarObjConf, data) {
-                
+
 //                buildTableLayout(data._id, false, null, null, function(res){
 //                    layout.cell('r_props').attach(res);
 //                });
-                
-                
+
+
                 var layoutObjConfContentTP = new dhx.Layout(null, {
 
                     rows: [

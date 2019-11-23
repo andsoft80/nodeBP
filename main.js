@@ -948,8 +948,10 @@ class FormRenderer {
                     
                     var tpName = structure.items[i].id.split('-').join('');
 
-                    this.code += "var " + tpName + " = ''";
-                    this.code += "mainLayout.cell('" + structure.id + "').attach(" + tpName + ");\n";
+                    this.code += "buildTableLayout("+this.doc.id+", false, null, "+structure.items[i].value+", cb, function(res){\n\
+                      mainLayout.cell('" + structure.id + "').attach(res); \n\
+                    })";
+                    //this.code += "mainLayout.cell('" + structure.id + "').attach(" + tpName + ");\n";
 
                 }
 
@@ -1049,6 +1051,7 @@ class FormRenderer {
 app.get('/formrender/:id', function (req, res) {
 
     var recId = req.body.recId;
+    
     var query = MetaData.findById(req.params.id);
     query.exec(function (err, doc) {
         if (err)

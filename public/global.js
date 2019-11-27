@@ -3,15 +3,16 @@ var editCell = {};
 var rh = 23;
 var hh = 23;
 
-function buildTableLayout(id, mode, win, tpId, cb, cbb) {
+function buildTableLayout(id, mode, win, tpId, recId, cb, cbb) {
     var needSave = false;
     var selectItem = null;
     var selectCol = null;
     var editCell = {};
     var rh = 23;
     var hh = 23;
+    var mainTable = null;
     getObject(id, function (object) {
-
+        mainTable = object.name;
         if (tpId) {
             var findTp = false;
             var tpObject = {};
@@ -20,12 +21,12 @@ function buildTableLayout(id, mode, win, tpId, cb, cbb) {
                     findTp = true;
                     tpObject.fields = object.tableParts[i].fields;
                     tpObject.listForm = object.tableParts[i].listForm;
-                    tpObject.name = object.name+'_'+object.tableParts[i].id;
+                    tpObject.name = object.name + '_' + object.tableParts[i].id;
                     object = tpObject;
                     break;
                 }
             }
-            if(!findTp){
+            if (!findTp) {
                 cbb(null);
             }
 
@@ -35,7 +36,7 @@ function buildTableLayout(id, mode, win, tpId, cb, cbb) {
         var layout = new dhx.Layout(null, {
             rows: [
                 {id: "toolBar"},
-                {id: "content"}
+                {id: "content", height: "250px"}
             ]
         });
         if (!mode) {
@@ -366,7 +367,7 @@ function buildTableLayout(id, mode, win, tpId, cb, cbb) {
             //data: dataset,
             selection: "complex",
             resizable: true,
-            //height: 200,
+            //height: "200px",
 
             //columnsAutoWidth : true
             //fitToContainer : true
@@ -467,13 +468,22 @@ function buildTableLayout(id, mode, win, tpId, cb, cbb) {
 
             $('#editButton').remove();
         });
+        var parcel = {};
+        if (tpId) {
+            
+            parcel.mainTable = mainTable;
+            parcel.recId = recId;
+            
+        }
+
         $.ajax({
             type: "post",
             //async: false,
             url: "/table/" + object.name + "/action/get",
             //headers: {"Access-Control-Allow-Origin": "*"},
-
+            data: parcel,
             success: function (data) {
+                alert(data);
                 grid.data.parse(JSON.parse(data));
                 grid.data.sort({
                     by: "id",
@@ -508,7 +518,7 @@ function showListForm(id, mode, cb) {
 
 
         });
-        buildTableLayout(id, mode, dhxWindow, null, cb, function (res) {
+        buildTableLayout(id, mode, dhxWindow, null, null, cb, function (res) {
             dhxWindow.attach(res);
 
         });

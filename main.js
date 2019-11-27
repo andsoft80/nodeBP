@@ -689,6 +689,8 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 
     var tableName = req.params.tableName;
     var action = req.params.action;
+    var mainTable = req.body.mainTable;
+    var recId = req.body.recId;
 
     if (action === 'post') {
         sqlStr = "INSERT INTO " + tableName + " (";
@@ -780,6 +782,10 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             for (i = 1; i < condition.length; i++) {
                 str = str + ' and ' + condition[i].field + " = '" + condition[i].value + "'";
             }
+            
+        }
+        if(recId){
+            str = str + ' and _idFK = '+ "'"+recId+"'";
         }
 
         //sqlStr = "select * from " + tableName;
@@ -788,13 +794,23 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 
         //////left joins for edt
 
-        var query = MetaData.findOne({name: tableName});
+        var query = MetaData.findOne({name: mainTable || tableName});
+
         query.exec(function (err, doc) {
             if (!doc) {
                 res.end(JSON.stringify("Metadata for object " + tableName + " not found!"));
                 return;
             }
             var lj = '';
+
+            if (mainTable) {
+                for (var i = 0; i < doc.tableParts.length; i++) {
+                    if(doc.tableParts[i].id === tableName){
+                        doc = doc.tableParts[i];
+                        break;
+                    }
+                }
+            }
 
             for (var i = 0; i < doc.listForm.length; i++) {
                 if (doc.listForm[i].type === "Extend") {
@@ -931,6 +947,9 @@ class FormRenderer {
                 if (structure.items[i].id.indexOf('cell_') === 0) {
                     var cell = {};
                     cell.id = structure.items[i].id;
+//                    if (structure.items[i].items[0].id.indexOf('tp_')===0){
+//                        cell.height = '300px';
+//                    }
                     layoutObj.push(cell);
                     //console.log(JSON.stringify(layoutObj));
                     this.fillLayoutNode(structure.items[i], layoutObj[layoutObj.length - 1]);
@@ -945,11 +964,12 @@ class FormRenderer {
 
                 }
                 if (structure.items[i].id.indexOf('tp_') === 0) {
-                    
+
                     var tpName = structure.items[i].id.split('-').join('');
 
-                    this.code += "buildTableLayout("+this.doc.id+", false, null, "+structure.items[i].value+", cb, function(res){\n\
-                      mainLayout.cell('" + structure.id + "').attach(res); \n\
+                    this.code += "buildTableLayout('" + this.doc.id + "', false, null, '" + structure.items[i].value + "',null, null, function(res){\n\
+                        mainLayout.cell('" + structure.id + "').attach(res); \n\
+                        mainLayout.cell('" + structure.id + "').paint();\n\
                     })";
                     //this.code += "mainLayout.cell('" + structure.id + "').attach(" + tpName + ");\n";
 
@@ -1051,7 +1071,7 @@ class FormRenderer {
 app.get('/formrender/:id', function (req, res) {
 
     var recId = req.body.recId;
-    
+
     var query = MetaData.findById(req.params.id);
     query.exec(function (err, doc) {
         if (err)

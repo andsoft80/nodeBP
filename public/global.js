@@ -473,6 +473,7 @@ function buildTableLayout(id, mode, win, tpId, recId, cb, cbb) {
             
             parcel.mainTable = mainTable;
             parcel.recId = recId;
+            parcel.tpId = tpId;
             
         }
 

@@ -691,6 +691,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
     var action = req.params.action;
     var mainTable = req.body.mainTable;
     var recId = req.body.recId;
+    var tpId = req.body.tpId;
 
     if (action === 'post') {
         sqlStr = "INSERT INTO " + tableName + " (";
@@ -803,9 +804,9 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             }
             var lj = '';
 
-            if (mainTable) {
+            if (tpId) {
                 for (var i = 0; i < doc.tableParts.length; i++) {
-                    if(doc.tableParts[i].id === tableName){
+                    if(doc.tableParts[i].id === tpId){
                         doc = doc.tableParts[i];
                         break;
                     }

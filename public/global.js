@@ -556,8 +556,8 @@ function showListForm(id, mode, cb) {
 //<--ListForm//////////////////////////////////////////////////////////////////////
 
 //-->ElementForm
-function showElementForm(id, cb) {
-
+function showElementForm(id,recId, cb) {
+    
 }
 //<--ElementForm
 

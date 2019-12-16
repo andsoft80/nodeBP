@@ -426,29 +426,36 @@ function buildObject(id, tpId, cb) {
 
             //if (doc.fields.length > 0) {
             //console.log(doc.fields.length);'
-            if (!tpId) {
-                if (doc.objectType === "dir" || doc.objectType === "doc") {
-                    var haveId = false;
-                    var haveName = false;
-                    for (var i = 0; i < doc.listForm.length; i++) {
-                        if (doc.listForm[i].fieldId === 'id') {
-                            haveId = true;
+            //if (!tpId) {
 
-                        }
-                        if (doc.listForm[i].fieldId === 'name') {
-                            haveName = true;
+            var haveId = false;
+            var haveName = false;
+            for (var i = 0; i < doc.listForm.length; i++) {
+                if (doc.listForm[i].fieldId === 'id') {
+                    haveId = true;
 
-                        }
-                    }
-                    if (!haveId || !haveName) {
-                        res.status = 500;
-                        res.text = "List Form of " + doc.name + " have not id or name field!";
-                        //con.end();
-                        cb(res);
-                        return;
-                    }
+                }
+                if (doc.listForm[i].fieldId === 'name') {
+                    haveName = true;
+
                 }
             }
+            if ((doc.objectType === "dir" || doc.objectType === "doc") && !tpId) {
+                if (!haveId || !haveName) {
+                    res.status = 500;
+                    res.text = "List Form of " + doc.name + " have not id or name field!";
+                    //con.end();
+                    cb(res);
+                    return;
+                }
+            } else if (!haveId) {
+                res.status = 500;
+                res.text = "List Form of " + doc.name + " have not id!";
+                //con.end();
+                cb(res);
+                return;
+            }
+            //}
             var sqlStr = "show tables like " + "'" + doc.name + "'";
             con.query(sqlStr, function (err, result) {
 
@@ -704,7 +711,9 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             }
             sqlStr = sqlStr + Object.keys(req.body)[i] + ",";
         }
-
+        if (recId) {
+            sqlStr = sqlStr + '_idFK,';
+        }
         //sqlStr = sqlStr.substring(0, sqlStr.length - 1);
         sqlStr = sqlStr + "_id) VALUES (";
         for (i = 0; i < Object.keys(req.body).length; i++) {
@@ -715,6 +724,9 @@ app.post('/table/:tableName/action/:action', function (req, res) {
                 continue;
             }
             sqlStr = sqlStr + "'" + req.body[Object.keys(req.body)[i]] + "',";
+        }
+        if (recId) {
+            sqlStr = sqlStr + "'" + recId + "',";
         }
         sqlStr = sqlStr + "'" + uuidv4() + "'";
         //sqlStr = sqlStr.substring(0, sqlStr.length - 1);
@@ -743,6 +755,9 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             }
 
             sqlStr = sqlStr + Object.keys(req.body)[i] + "='" + req.body[Object.keys(req.body)[i]] + "',"
+        }
+        if (recId) {
+            sqlStr = sqlStr + "_idFK = '"+recId+"',";
         }
         sqlStr = sqlStr.substring(0, sqlStr.length - 1);
         sqlStr = sqlStr + " where _id = '" + id + "'";
@@ -783,10 +798,10 @@ app.post('/table/:tableName/action/:action', function (req, res) {
             for (i = 1; i < condition.length; i++) {
                 str = str + ' and ' + condition[i].field + " = '" + condition[i].value + "'";
             }
-            
+
         }
-        if(recId){
-            str = str + ' and _idFK = '+ "'"+recId+"'";
+        if (recId) {
+            str = str + ' and _idFK = ' + "'" + recId + "'";
         }
 
         //sqlStr = "select * from " + tableName;
@@ -806,7 +821,7 @@ app.post('/table/:tableName/action/:action', function (req, res) {
 
             if (tpId) {
                 for (var i = 0; i < doc.tableParts.length; i++) {
-                    if(doc.tableParts[i].id === tpId){
+                    if (doc.tableParts[i].id === tpId) {
                         doc = doc.tableParts[i];
                         break;
                     }
@@ -907,6 +922,7 @@ class FormRenderer {
 
     constructor(doc, recId) {
         this.doc = doc;
+        this.recId = recId;
         this.code = "";
         //this.html = "";
         //this.parcel = {};
@@ -968,7 +984,7 @@ class FormRenderer {
 
                     var tpName = structure.items[i].id.split('-').join('');
 
-                    this.code += "buildTableLayout('" + this.doc.id + "', false, null, '" + structure.items[i].value + "',null, null, function(res){\n\
+                    this.code += "buildTableLayout('" + this.doc.id + "', false, null, '" + structure.items[i].value + "',"+this.recId+", null, function(res){\n\
                         mainLayout.cell('" + structure.id + "').attach(res); \n\
                         mainLayout.cell('" + structure.id + "').paint();\n\
                     })";

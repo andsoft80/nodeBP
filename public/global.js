@@ -3,7 +3,7 @@ var editCell = {};
 var rh = 23;
 var hh = 23;
 
-function buildTableLayout(id, mode, win, tpId, recId, cb, cbb) {
+function buildTableLayout(_id, mode, win, tpId, recId, cb, cbb) {
     var needSave = false;
     var selectItem = null;
     var selectCol = null;
@@ -11,7 +11,7 @@ function buildTableLayout(id, mode, win, tpId, recId, cb, cbb) {
     var rh = 23;
     var hh = 23;
     var mainTable = null;
-    getObject(id, function (object) {
+    getObject(_id, function (object) {
         mainTable = object.name;
         if (tpId) {
             var findTp = false;
@@ -91,7 +91,7 @@ function buildTableLayout(id, mode, win, tpId, recId, cb, cbb) {
                     }
                     var formEditMode = object.formEditMode;
                     if (formEditMode) {
-
+                        showElementForm(_id);
                     } else {
                         var parcel = {table: '', fields: ''};
 
@@ -159,7 +159,7 @@ function buildTableLayout(id, mode, win, tpId, recId, cb, cbb) {
                 if (id === "edit") {
                     var formEditMode = object.formEditMode;
                     if (formEditMode) {
-
+                        
                     } else {
                         alert("Inline editing for this object!");
                     }
@@ -470,11 +470,11 @@ function buildTableLayout(id, mode, win, tpId, recId, cb, cbb) {
         });
         var parcel = {};
         if (tpId) {
-            
+
             parcel.mainTable = mainTable;
             parcel.recId = recId;
             parcel.tpId = tpId;
-            
+
         }
 
         $.ajax({
@@ -556,8 +556,129 @@ function showListForm(id, mode, cb) {
 //<--ListForm//////////////////////////////////////////////////////////////////////
 
 //-->ElementForm
-function showElementForm(id,recId, cb) {
-    
+function showElementForm(id, recId, cb) {
+
+    getObject(id, function (doc) {
+
+        $(".dhx_popup--window_active").removeClass("dhx_popup--window_active");
+        var dhxWindow = new dhx.Window({
+            title: doc.alias,
+            modal: true,
+            resizable: true,
+            movable: true,
+            minHeight: 500,
+            minWidth: 700,
+            closable: true
+
+
+        });
+
+        var toFull = true;
+
+        dhxWindow.events.on("HeaderDoubleclick", function () {
+
+
+            if (toFull) {
+                dhxWindow.fullScreen();
+            } else {
+
+                dhxWindow.setSize(restore.width, restore.height);
+
+
+
+            }
+            toFull = !toFull;
+        });
+
+        dhxWindow.show();
+        var restore = dhxWindow.getSize();
+
+
+
+
+
+        $.ajax({
+            type: "get",
+            async: false,
+            url: "/formrender/" + data._id,
+            //headers: {"Access-Control-Allow-Origin": "*"},
+
+            success: function (result) {
+                //alert(result);
+                //var dhxwindow = new dhx.Window({width: 700, height: 520, title: "Window", resizable: true, closable: true, movable: true});
+                var formhtml = "<div id='" + doc.elementForm[0].id + "' ></div>";
+                //dhxwindow.attachHTML(formhtml);
+//            if ($("#" + Object.keys(treeForm.getState())[0]).html() !== undefined) {
+//
+//                $("#" + Object.keys(treeForm.getState())[0]).html("");
+//                layoutObjConfContentForms.cell('formEditor').paint();
+//            }
+//
+//            if ($("#" + Object.keys(treeForm.getState())[0]).html() === undefined) {
+//                layoutObjConfContentForms.cell('formEditor').attachHTML(formhtml);
+//            }
+
+                dhxWindow.attachHTML(formhtml);
+                let formFunction = new Function(result);
+
+
+                setTimeout(() => formFunction(), 1);
+
+                //-->edt draw
+                setTimeout(() =>
+                    getObject(data._id, function (doc) {
+                        for (var i = 0; i < doc.fields.length; i++) {
+                            var field = doc.fields[i];
+                            if (field.type === "Extend") {
+                                if ($('.dhx_input__wrapper:has("#' + field.fieldId + '")').parents("#" + Object.keys(treeForm.getState())[0]).get(0)) {
+                                    var f = $('.dhx_input__wrapper:has("#' + field.fieldId + '")').get(0);
+                                    var btn = document.createElement("button");
+                                    btn.setAttribute('id', "editButton_name");
+                                    btn.innerHTML = '...';
+                                    btn.style.top = '1px';
+                                    btn.style.zIndex = 0;
+                                    //btn.style.left = (f.offsetWidth - rh - 1) + 'px';
+                                    btn.style.right = 0;
+                                    btn.style.position = 'absolute';
+                                    btn.style.height = btn.style.width = rh + 'px';
+
+                                    btn.setAttribute('edtData', JSON.stringify(field.edtType));
+
+                                    btn.onclick = function () {
+
+                                        //var edtData = field.edtType;
+                                        showListForm(JSON.parse(this.getAttribute('edtData')).objectId, true, function (data) {
+                                            //selectItem[column.id] = data.name;
+                                            //selectItem[column.id.replace("edt_", "")] = data.id;
+                                            //selectItem[column.id].title = 'mama';
+                                            //grid.paint();
+
+                                            //toolbar.events.fire("Click", ["save"]);
+                                            alert(data.name);
+
+                                        })
+                                    };
+                                    f.appendChild(btn);
+                                }
+                            }
+                        }
+                    }), 100);
+                //<--edt draw////////
+
+
+
+
+                //console.log(result);
+
+            }
+        });//ajax
+
+    });
+
+
+
+
+
 }
 //<--ElementForm
 

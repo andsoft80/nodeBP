@@ -86,6 +86,7 @@ var objectSchema = mongoose.Schema({
     objectType: String,
     name: {type: String, unique: true, required: true, uniqueCaseInsensitive: true},
     alias: {type: String, required: true},
+    formEditMode:{type: Boolean},
     fields: {
         type: mongoose.Schema.Types.Mixed,
         default: []

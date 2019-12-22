@@ -271,6 +271,19 @@ and open the template in the editor.
                     }
                 ];
 
+
+                var formEditMode = {
+                    id: "formEditMode",
+                    type: "checkbox",
+                    label: "Form edit mode",
+                    labelInline: true
+
+                };
+
+                if (selCurrTreeItem === 'dir' || tree.data.getParent(selCurrTreeItem)=== 'dir') {
+                    rows.push(formEditMode);
+                }
+
                 var rawsBtn = [
                     {
                         cols: [
@@ -296,7 +309,7 @@ and open the template in the editor.
                 if (!isNew) {
 
                     getObject(selCurrTreeItem, function (result) {
-                        form.setValue({name: selCurrTreeItemName, alias: result.alias});
+                        form.setValue({name: selCurrTreeItemName, alias: result.alias, formEditMode: result.formEditMode});
                         editObject = result;
                     });
                 }
@@ -319,6 +332,9 @@ and open the template in the editor.
 
                             objectModel.name = form.getValue().name;
                             objectModel.alias = form.getValue().alias;
+                            if(form.getValue().formEditMode){
+                                objectModel.formEditMode = form.getValue().formEditMode;
+                            }
                             if (isNew) {
                                 objectModel.objectType = tree.selection.getItem().id;
                                 saveObject(objectModel, function (result) {
@@ -1093,6 +1109,7 @@ and open the template in the editor.
 
                                 }
                                 if (tpId) {
+                                    //alert(tpId);
                                     for (var i = 0; i < objectModel.tableParts.length; i++) {
                                         if (objectModel.tableParts[i].id === tpId) {
                                             objectModel.tableParts[i].fields = fields;
@@ -1453,9 +1470,9 @@ and open the template in the editor.
                 layoutObjConfContentForms.cell('contentData').attach(treeData);
                 layoutObjConfContentForms.cell('content').attach(treeForm);
                 toolBar.events.on("Click", function (id, e) {
-                    
-                    if ((treeForm.selection.getId().indexOf('cell_') === 0 || treeForm.selection.getId().indexOf('form_')===0)) {
-                        if (treeForm.data.haveItems(treeForm.selection.getId()) && toolBar.data.getParent(id)==='add') {
+
+                    if ((treeForm.selection.getId().indexOf('cell_') === 0 || treeForm.selection.getId().indexOf('form_') === 0)) {
+                        if (treeForm.data.haveItems(treeForm.selection.getId()) && toolBar.data.getParent(id) === 'add') {
                             alert('In layout cell can be only one component!');
                             return false;
                         }
@@ -1541,6 +1558,7 @@ and open the template in the editor.
                             success: function (result) {
                                 //alert(result);
                                 //var dhxwindow = new dhx.Window({width: 700, height: 520, title: "Window", resizable: true, closable: true, movable: true});
+                                //alert(Object.keys(treeForm.getState())[0]);
                                 var formhtml = "<div id='" + Object.keys(treeForm.getState())[0] + "' ></div>";
                                 //dhxwindow.attachHTML(formhtml);
                                 if ($("#" + Object.keys(treeForm.getState())[0]).html() !== undefined) {
@@ -2086,7 +2104,9 @@ and open the template in the editor.
                             alert("Select Table Part");
                             return;
                         }
+                        //alert(listTP.selection.getId());
                         editField(data, list, listForm, null, listTP.selection.getId());
+
                     }
                     ;
                     if (_id === 'delete') {
